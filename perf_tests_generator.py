@@ -84,25 +84,27 @@ def is_float_func(func):
     return False
 
 
-def copy_build_for_board(board, func, test_dir_func):
+def create_make_dir_name(board, point):
     make_dir_name = '_'.join(['make', board])
     if board == 'mc12101':
         nmpu = ''
-        if is_float_func(func):
+        if point == 'float':
             nmpu = '_nmpu0'
         else:
             nmpu = '_nmpu1'
         make_dir_name += nmpu
+    return make_dir_name
 
+
+def copy_build_for_board(board, func, test_dir_func, make_dir_name):
     make_dir_func = os.path.join(test_dir_func, make_dir_name)
-
     try:
         shutil.copytree(os.path.join('templates', make_dir_name), make_dir_func)
     except OSError as error:
         raise error
 
 
-def generate_perf_tests(functions, perf_scripts, board, group_name, path_to_tests):
+def generate_perf_tests(functions, perf_scripts, board, group_name, path_to_tests, point):
     file_beginning = ('#include "nmpp.h"\n'
                       '#include "time.h"\n'
                       '#include "stdio.h"\n'
@@ -121,16 +123,23 @@ def generate_perf_tests(functions, perf_scripts, board, group_name, path_to_test
                       '#pragma data_section ".data_em1"\n'
                       '    long long em1[2048];\n\n'
                       )               # for the writting
+    make_dir_name = create_make_dir_name(board, point)
     init_funcs = []
     funcs_for_test = []
     for func in functions:
+        if point == 'fixed':
+            if is_float_func(func):
+                continue
+        if point == 'float':
+            if not is_float_func(func):
+                continue
         if set(func.args_names) != set(perf_scripts[0].args_names):
             init_funcs.append(func.name + '\n')
             continue
         else:
             funcs_for_test.append(func.name + '\n')
         test_dir_func = os.path.join(path_to_tests, func.name)
-        copy_build_for_board(board, func, test_dir_func)
+        copy_build_for_board(board, func, test_dir_func, make_dir_name)
         num = 0
         lists = []    # for the writting
         names = []
@@ -221,10 +230,11 @@ def generate_perf_tests(functions, perf_scripts, board, group_name, path_to_test
 def parse_cmd_args():
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('-b', '--board', default='mc12101')
-    args_parser.add_argument('--path_to_xml', default='..')
-    args_parser.add_argument('--path_to_tests', default='..')
-    args_parser.add_argument('--path_to_tables', default='..')
-    args_parser.add_argument('--path_to_log', default='..')
+    args_parser.add_argument('-p', '--point', default='fixed')
+    args_parser.add_argument('--path_to_xml', default='.')
+    args_parser.add_argument('--path_to_tests', default='.')
+    args_parser.add_argument('--path_to_tables', default='.')
+    args_parser.add_argument('--path_to_log', default='.')
     args_parser.add_argument('--xml_dir_name', default='xml')
 
     console_args = args_parser.parse_args(sys.argv[1:])
@@ -232,9 +242,10 @@ def parse_cmd_args():
     return console_args
 
 
-def generate_makefile(path):
+def generate_makefile(path, board, point):
+    make_dir_name = create_make_dir_name(board, point)
     with open(os.path.join(path, "Makefile"), 'w') as file:
-        file.write('ALL_DIRS = $(wildcard *)\n\ndefine newline\n\n\nendef\n\nall:\n\t  $(foreach dir, $(ALL_DIRS), -$(MAKE) -C./$(dir)/make_mc12101_nmpu1 run $(newline))\n')
+        file.write('ALL_DIRS = $(wildcard *)\n\ndefine newline\n\n\nendef\n\nall:\n\t  $(foreach dir, $(ALL_DIRS), -$(MAKE) -C./$(dir)/{} run $(newline))\n'.format(make_dir_name))
 
 
 def get_funcs_without_test(funcs_for_test, path_to_tests):
@@ -258,9 +269,9 @@ def generate_log(log_path, init_funcs, funcs_for_test, funcs_without_test, funcs
 
 cmd_args = parse_cmd_args()
 
-log_dir_name = 'perf_test_log'
-tests_dir_name = 'perf_tests'
-tables_dir_name = 'perf_tables'
+log_dir_name = 'perf_test_log_{}'.format(cmd_args.point)
+tests_dir_name = 'perf_tests_{}'.format(cmd_args.point)
+tables_dir_name = 'perf_tables_{}'.format(cmd_args.point)
 xml_dir_name = cmd_args.xml_dir_name
 
 path_to_xml_dir = os.path.join(cmd_args.path_to_xml, cmd_args.xml_dir_name)
@@ -275,9 +286,10 @@ try:
     os.mkdir(path_to_tables_dir)
 except OSError:
     pass
-generate_makefile(path_to_tests_dir)
+generate_makefile(path_to_tests_dir, cmd_args.board, cmd_args.point)
 for file in xml_files:
     xml_obj = open_xml(os.path.join(path_to_xml_dir, file))
+    # print(file)
     try:
         perf_scripts = get_perf_scripts(xml_obj)
     except Exception as ex:
@@ -288,7 +300,7 @@ for file in xml_files:
     functions = parse_funcs_prototypes(funcs_prototypes)
     group_name = get_group_name(xml_obj)
     try:
-        init_funcs, funcs_for_test = generate_perf_tests(functions, perf_scripts, 'mc12101', group_name, path_to_tests_dir)
+        init_funcs, funcs_for_test = generate_perf_tests(functions, perf_scripts, cmd_args.board, group_name, path_to_tests_dir, cmd_args.point)
     except Exception as err:
         print(err)
         continue

@@ -36,7 +36,7 @@ $(TARGET): $(SRC_CPP) $(SRC_ASM) $(CFG) Makefile $(NMPP)/lib/nmpp-nmc4.lib
 PATH:=$(MC12101)/bin;$(PATH)
 
 run: $(TARGET)
-	mc12101run $(TARGET) -p -q > ../../../perf_tables/$(notdir $(abspath ..)).h
+	mc12101run $(TARGET) -p -q > ../../../perf_tables_fixed/$(notdir $(abspath ..)).h
 
 test: .exitcode
 
