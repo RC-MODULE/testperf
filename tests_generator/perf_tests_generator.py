@@ -3,15 +3,10 @@ import re
 import random
 import shutil
 
-import sys
-import argparse
-
 from collections import namedtuple
 
-from xml_parser import open_xml
-from xml_parser import get_group_name
-from xml_parser import get_perf_scripts
-from xml_parser import get_funcs_prototypes
+from tests_generator import xml_parser
+from tests_generator import logs_generator
 
 
 def parse_perf_scripts(perf_scripts):
@@ -84,46 +79,26 @@ def is_float_func(func):
     return False
 
 
-def create_make_dir_name(board, point):
-    make_dir_name = '_'.join(['make', board])
-    if board == 'mc12101':
-        nmpu = ''
-        if point == 'float':
-            nmpu = '_nmpu0'
-        else:
-            nmpu = '_nmpu1'
-        make_dir_name += nmpu
-    return make_dir_name
+# def create_make_dir_name(board, point):
+#     make_dir_name = '_'.join(['make', board])
+#     if board == 'mc12101':
+#         nmpu = ''
+#         if point == 'float':
+#             nmpu = '_nmpu0'
+#         else:
+#             nmpu = '_nmpu1'
+#         make_dir_name += nmpu
+#     return make_dir_name
 
 
-def copy_build_for_board(board, func, test_dir_func, make_dir_name):
-    make_dir_func = os.path.join(test_dir_func, make_dir_name)
+def copy_build_for_board(path_to_build, path_to_test):
     try:
-        shutil.copytree(os.path.join('templates', make_dir_name), make_dir_func)
+        shutil.copytree(path_to_build, path_to_test)
     except OSError as error:
         raise error
 
 
-def generate_perf_tests(functions, perf_scripts, board, group_name, path_to_tests, point):
-    file_beginning = ('#include "nmpp.h"\n'
-                      '#include "time.h"\n'
-                      '#include "stdio.h"\n'
-                      '#include "stdlib.h"\n'
-                      '#include "fft.h"\n\n'
-                      '#pragma data_section ".data_imu0"\n'
-                      '    long long L[2048];\n'
-                      '#pragma data_section ".data_imu1"\n'
-                      '    long long G[2048];\n'
-                      '#pragma data_section ".data_imu2"\n'
-                      '    long long im2[2048];\n'
-                      '#pragma data_section ".data_imu3"\n'
-                      '    long long im3[2048];\n'
-                      '#pragma data_section ".data_em0"\n'
-                      '    long long em0[2048];\n'
-                      '#pragma data_section ".data_em1"\n'
-                      '    long long em1[2048];\n\n'
-                      )               # for the writting
-    make_dir_name = create_make_dir_name(board, point)
+def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, point, path_to_build):
     init_funcs = []
     funcs_for_test = []
     for func in functions:
@@ -138,8 +113,8 @@ def generate_perf_tests(functions, perf_scripts, board, group_name, path_to_test
             continue
         else:
             funcs_for_test.append(func.name + '\n')
-        test_dir_func = os.path.join(path_to_tests, func.name)
-        copy_build_for_board(board, func, test_dir_func, make_dir_name)
+        test_dir_func = '_'.join(['perf', func.name])
+        copy_build_for_board(path_to_build, test_dir_func)
         num = 0
         lists = []    # for the writting
         names = []
@@ -147,8 +122,8 @@ def generate_perf_tests(functions, perf_scripts, board, group_name, path_to_test
         called_funcs = []
         init_args = []
         print_f = []
-        test_name = '{}.cpp'.format(func.name)
-        path_to_test = os.path.join(test_dir_func, test_name)
+        #test_name = '{}.cpp'.format(func.name)
+        path_to_test = os.path.join(test_dir_func, 'main.cpp')
         max_spaces = '  ' * len(func.args_names)
         for pss in perf_scripts:
             called_str = '{}({};\n'.format(func.name, ', '.join(func.args_names))
@@ -202,11 +177,11 @@ def generate_perf_tests(functions, perf_scripts, board, group_name, path_to_test
             spaces = spaces.replace('  ', '', 1)
             brackets.append(spaces + '}\n')
         try:
-            with open(path_to_test, 'w') as file:
-                file.write(file_beginning)
+            with open(path_to_test, 'a') as file:
+                #file.write(file_beginning)
                 file.writelines(lists)
                 file.writelines(names)
-                file.write('\nint main()\n{\n  clock_t t1, t2;\n')
+                file.write('\n  clock_t t1, t2;\n')
                 file.write('  printf("{2}**{1}{3}ingroup {0}{1}");\n'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
                 for i, cycle in enumerate(cycles):
                     s = '   |   '.join(perf_scripts[i].args_names)
@@ -227,94 +202,46 @@ def generate_perf_tests(functions, perf_scripts, board, group_name, path_to_test
     return init_funcs, funcs_for_test
 
 
-def parse_cmd_args():
-    args_parser = argparse.ArgumentParser()
-    args_parser.add_argument('-b', '--board', default='mc12101')
-    args_parser.add_argument('-p', '--point', default='fixed')
-    args_parser.add_argument('--path_to_xml', default='.')
-    args_parser.add_argument('--path_to_tests', default='.')
-    args_parser.add_argument('--path_to_tables', default='.')
-    args_parser.add_argument('--path_to_log', default='.')
-    args_parser.add_argument('--xml_dir_name', default='xml')
-
-    console_args = args_parser.parse_args(sys.argv[1:])
-
-    return console_args
-
-
-def generate_makefile(path, board, point):
-    make_dir_name = create_make_dir_name(board, point)
-    with open(os.path.join(path, "Makefile"), 'w') as file:
+def generate_makefile(point):
+    make_dir_name = 'make_mc12101_nmc0'
+    with open("Makefile", 'w') as file:
         file.write('ALL_DIRS = $(wildcard *)\n\ndefine newline\n\n\nendef\n\nall:\n\t  $(foreach dir, $(ALL_DIRS), -$(MAKE) -C./$(dir)/{} run $(newline))\n'.format(make_dir_name))
 
 
-def get_funcs_without_test(funcs_for_test, path_to_tests):
-    funcs_with_test = [test_func + '\n' for test_func in os.listdir(path_to_tests)]
-    return list(set(funcs_for_test) - set(funcs_with_test))
+def generate_perf_tests_from_all_xml(cmd_args):
+    log_dir_name = 'perf_test_log_{}'.format(cmd_args.point)
+    #tests_dir_name = 'perf_tests_{}'.format(cmd_args.point)
+    tables_dir_name = 'perf_tables_{}'.format(cmd_args.point)
 
+    path_to_log_dir = os.path.join(cmd_args.path_to_log, log_dir_name)
+    #path_to_tests_dir = os.path.join(cmd_args.path_to_tests, tests_dir_name)
+    #path_to_tables_dir = os.path.join(cmd_args.path_to_tables, tables_dir_name)
 
-def get_funcs_without_perf_table(funcs_for_test, path_to_tables):
-    funcs_with_table = [perf_table[:-2] for perf_table in os.listdir(path_to_tables)]
-    return list(set(funcs_for_test) - set(funcs_with_table))
-
-
-def generate_log(log_path, init_funcs, funcs_for_test, funcs_without_test, funcs_without_table):
-    with open(os.path.join(log_path, "init_funcs.log"), 'a') as init_log:
-        init_log.writelines(init_funcs)
-    with open(os.path.join(log_path, "funcs_for_test.log"), 'a') as test_log:
-        test_log.writelines(funcs_for_test)
-    with open(os.path.join(log_path, "funcs_without_test.log"), 'a') as without_test_log:
-        without_test_log.writelines(funcs_without_test)
-
-
-cmd_args = parse_cmd_args()
-
-log_dir_name = 'perf_test_log_{}'.format(cmd_args.point)
-tests_dir_name = 'perf_tests_{}'.format(cmd_args.point)
-tables_dir_name = 'perf_tables_{}'.format(cmd_args.point)
-xml_dir_name = cmd_args.xml_dir_name
-
-path_to_xml_dir = os.path.join(cmd_args.path_to_xml, cmd_args.xml_dir_name)
-path_to_log_dir = os.path.join(cmd_args.path_to_log, log_dir_name)
-path_to_tests_dir = os.path.join(cmd_args.path_to_tests, tests_dir_name)
-path_to_tables_dir = os.path.join(cmd_args.path_to_tables, tables_dir_name)
-
-xml_files = [file for file in os.listdir(path_to_xml_dir) if 'group__' in file]
-try:
-    os.mkdir(path_to_log_dir)
-    os.mkdir(path_to_tests_dir)
-    os.mkdir(path_to_tables_dir)
-except OSError:
-    pass
-generate_makefile(path_to_tests_dir, cmd_args.board, cmd_args.point)
-for file in xml_files:
-    xml_obj = open_xml(os.path.join(path_to_xml_dir, file))
-    # print(file)
+    xml_files = [file for file in os.listdir(cmd_args.path_to_xml) if 'group__' in file]
     try:
-        perf_scripts = get_perf_scripts(xml_obj)
-    except Exception as ex:
-        print(file, ex)
-        continue
-    perf_scripts = parse_perf_scripts(perf_scripts)
-    funcs_prototypes = get_funcs_prototypes(xml_obj)
-    functions = parse_funcs_prototypes(funcs_prototypes)
-    group_name = get_group_name(xml_obj)
-    try:
-        init_funcs, funcs_for_test = generate_perf_tests(functions, perf_scripts, cmd_args.board, group_name, path_to_tests_dir, cmd_args.point)
-    except Exception as err:
-        print(err)
-        continue
-    funcs_without_test = get_funcs_without_test(funcs_for_test, path_to_tests_dir)
-    funcs_without_table = get_funcs_without_perf_table(funcs_for_test, path_to_tables_dir)
-    generate_log(path_to_log_dir, init_funcs, funcs_for_test, funcs_without_test, funcs_without_table)
-
-
-
-
-# xml_obj = open_xml('group___m_t_r___copy.xml')
-# perf_scripts = get_perf_scripts(xml_obj)
-# perf_scripts = parse_perf_scripts(perf_scripts)
-# funcs_prototypes = get_funcs_prototypes(xml_obj)
-# functions = parse_funcs_prototypes(funcs_prototypes)
-# group_name = get_group_name(xml_obj)
-# generate_perf_tests(functions, perf_scripts, group_name)
+        os.mkdir(path_to_log_dir)
+        #os.mkdir(path_to_tests_dir)
+        #os.mkdir(path_to_tables_dir)
+    except OSError:
+        pass
+    #generate_makefile(cmd_args.point)
+    for file in xml_files:
+        xml_obj = xml_parser.open_xml(os.path.join(cmd_args.path_to_xml, file))
+        # print(file)
+        try:
+            perf_scripts = xml_parser.get_perf_scripts(xml_obj)
+        except Exception as ex:
+            print(file, ex)
+            continue
+        perf_scripts = parse_perf_scripts(perf_scripts)
+        funcs_prototypes = xml_parser.get_funcs_prototypes(xml_obj)
+        functions = parse_funcs_prototypes(funcs_prototypes)
+        group_name = xml_parser.get_group_name(xml_obj)
+        try:
+            init_funcs, funcs_for_test = generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, cmd_args.point, cmd_args.path_to_build)
+        except Exception as err:
+            print(err)
+            continue
+        #funcs_without_test = get_funcs_without_test(funcs_for_test, path_to_tests_dir)
+        #funcs_without_table = logs_generator.get_funcs_without_perf_table(funcs_for_test, path_to_tables_dir)
+        #logs_generator.generate_log(path_to_log_dir, init_funcs, funcs_for_test, funcs_without_table)
