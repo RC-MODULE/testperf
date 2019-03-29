@@ -98,7 +98,23 @@ def copy_build_for_board(path_to_build, path_to_test):
         raise error
 
 
-def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, point, path_to_build):
+def get_contents_cppftest(path_to_build):
+    build_dir_files = os.listdir(path_to_build)
+    for file in build_dir_files:
+        with open(os.path.join(path_to_build, file), 'r') as r_file:
+            file_contents = r_file.readlines()
+            for line in file_contents:
+                if 'int main' in line:
+                    return file, file_contents
+
+
+def make_file_beginning(contents):
+    file_beginning = ''.join(contents)
+    num = file_beginning.find('return')
+    return file_beginning[:num]
+
+
+def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_name, file_beginning, point, path_to_build):
     init_funcs = []
     funcs_for_test = []
     for func in functions:
@@ -113,8 +129,8 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, point,
             continue
         else:
             funcs_for_test.append(func.name + '\n')
-        test_dir_func = '_'.join(['perf', func.name])
-        copy_build_for_board(path_to_build, test_dir_func)
+        test_dir_name = '_'.join(['perf', func.name])
+        copy_build_for_board(path_to_build, test_dir_name)
         num = 0
         lists = []    # for the writting
         names = []
@@ -122,8 +138,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, point,
         called_funcs = []
         init_args = []
         print_f = []
-        #test_name = '{}.cpp'.format(func.name)
-        path_to_test = os.path.join(test_dir_func, 'main.cpp')
+        path_to_test = os.path.join(test_dir_name, test_name)
         max_spaces = '  ' * len(func.args_names)
         for pss in perf_scripts:
             called_str = '{}({};\n'.format(func.name, ', '.join(func.args_names))
@@ -177,8 +192,8 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, point,
             spaces = spaces.replace('  ', '', 1)
             brackets.append(spaces + '}\n')
         try:
-            with open(path_to_test, 'a') as file:
-                #file.write(file_beginning)
+            with open(path_to_test, 'w') as file:
+                file.write(file_beginning)
                 file.writelines(lists)
                 file.writelines(names)
                 file.write('\n  clock_t t1, t2;\n')
@@ -217,6 +232,9 @@ def generate_perf_tests_from_all_xml(cmd_args):
     #path_to_tests_dir = os.path.join(cmd_args.path_to_tests, tests_dir_name)
     #path_to_tables_dir = os.path.join(cmd_args.path_to_tables, tables_dir_name)
 
+    test_name, perf_test_contents = get_contents_cppftest(cmd_args.path_to_build)
+    file_beginning = make_file_beginning(perf_test_contents)
+
     xml_files = [file for file in os.listdir(cmd_args.path_to_xml) if 'group__' in file]
     try:
         os.mkdir(path_to_log_dir)
@@ -238,7 +256,13 @@ def generate_perf_tests_from_all_xml(cmd_args):
         functions = parse_funcs_prototypes(funcs_prototypes)
         group_name = xml_parser.get_group_name(xml_obj)
         try:
-            init_funcs, funcs_for_test = generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, cmd_args.point, cmd_args.path_to_build)
+            init_funcs, funcs_for_test = generate_perf_tests_from_one_xml(functions,
+                                                                          perf_scripts,
+                                                                          group_name,
+                                                                          test_name,
+                                                                          file_beginning,
+                                                                          cmd_args.point,
+                                                                          cmd_args.path_to_build)
         except Exception as err:
             print(err)
             continue
