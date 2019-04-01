@@ -10,6 +10,10 @@ from tests_generator import perf_tests_generator
 def parse_cmd_args():
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('-p', '--point', default='float')
+    # args_parser.add_argument('-c', '--config')
+    # args_parser.add_argument('-p', '--point', default='float')
+    # args_parser.add_argument('-p', '--point', default='float')
+    # args_parser.add_argument('-p', '--point', default='float')
     args_parser.add_argument('--path_to_build')
     args_parser.add_argument('--path_to_inc')
     args_parser.add_argument('--path_to_xml', default=os.path.join('doxy', 'xml'))
@@ -22,10 +26,23 @@ def parse_cmd_args():
 
     return console_args
 
+
 parsed_cmd_args = parse_cmd_args()
+
 
 doxy.make_xml(parsed_cmd_args.path_to_inc)
 perf_tests_generator.generate_perf_tests_from_all_xml(parsed_cmd_args)
+
+dirs_names = [name for name in os.listdir() if 'perf_' in name]
+
+for dir_name in dirs_names:
+    os.chdir(dir_name)
+    # print('make run > {}.md'.format(dir_name[5:]))
+    os.system('make run > {}.md'.format(dir_name[5:]))
+    os.chdir('..')
+
+
+
 
 
 

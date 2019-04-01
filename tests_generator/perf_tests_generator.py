@@ -79,24 +79,11 @@ def is_float_func(func):
     return False
 
 
-# def create_make_dir_name(board, point):
-#     make_dir_name = '_'.join(['make', board])
-#     if board == 'mc12101':
-#         nmpu = ''
-#         if point == 'float':
-#             nmpu = '_nmpu0'
-#         else:
-#             nmpu = '_nmpu1'
-#         make_dir_name += nmpu
-#     return make_dir_name
-
-
 def copy_build_for_board(path_to_build, path_to_test):
-    try:
-        shutil.copytree(path_to_build, path_to_test)
-    except OSError as error:
-        raise error
+    if os.path.exists(path_to_test):
+        shutil.rmtree(path_to_test)
 
+    shutil.copytree(path_to_build, path_to_test)
 
 def get_contents_cppftest(path_to_build):
     build_dir_files = os.listdir(path_to_build)
@@ -200,7 +187,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 file.write('  printf("{2}**{1}{3}ingroup {0}{1}");\n'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
                 for i, cycle in enumerate(cycles):
                     s = '   |   '.join(perf_scripts[i].args_names)
-                    file.write('  printf("testperf {}{}");\n'.format(str(i), r"\n"))
+                    file.write('  printf("testperf {0}{1}{1}");\n'.format(str(i), r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
                     file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].args_names) + 1), r"\n"))
                     file.write(cycle)
@@ -210,7 +197,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     file.writelines(brackets)
                 file.write('\n')
                 file.write('  printf("*/{}");\n'.format(r"\n"))
-                file.write('  printf("{}");\n'.format(func.prototype))
+                file.write('  printf("{0}{1}{1}");\n'.format(func.prototype, r"\n"))
                 file.write('  return 0;\n}\n')
         except Exception as exc:
             print(path_to_test, exc)
@@ -224,9 +211,9 @@ def generate_makefile(point):
 
 
 def generate_perf_tests_from_all_xml(cmd_args):
-    log_dir_name = 'perf_test_log_{}'.format(cmd_args.point)
+    log_dir_name = 'logs_gen_{}'.format(cmd_args.point)
     #tests_dir_name = 'perf_tests_{}'.format(cmd_args.point)
-    tables_dir_name = 'perf_tables_{}'.format(cmd_args.point)
+    #tables_dir_name = 'perf_tables_{}'.format(cmd_args.point)
 
     path_to_log_dir = os.path.join(cmd_args.path_to_log, log_dir_name)
     #path_to_tests_dir = os.path.join(cmd_args.path_to_tests, tests_dir_name)
