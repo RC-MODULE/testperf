@@ -21,12 +21,12 @@ LIB_DIRS = -L"$(NMPP)/lib"     -L"$(MC12101)/lib" -L$(HAL)/lib -L"$(NEURO)/lib"
 LIBS     = mc12101lib_nm.lib libc4f.lib nmpp-nmc4f.lib hal-mc12101.lib
 TARGET   = main.abs
 CFG      = mc12101brd-nmpu0.cfg
-SRC_CPP  = $(wildcard $(addsuffix /*.cpp,..))
-SRC_ASM  = $(wildcard $(addsuffix /*.asm,..))
+SRC_CPP  = $(wildcard *.cpp)
+SRC_ASM  = $(wildcard *.asm)
 
 
 $(TARGET): $(SRC_CPP) $(SRC_ASM) $(CFG) Makefile $(NMPP)/lib/nmpp-nmc4f.lib
-	nmcc -o$(TARGET) -m.main.map $(SRC_CPP) $(SRC_ASM) clock.asm -nmc4 -g -O0 $(INC_DIRS) $(LIB_DIRS) $(LIBS) -c$(CFG) -heap=16384 -heap1=16384 -heap2=16384 -heap3=16384
+	nmcc -o$(TARGET) -m.main.map $(SRC_CPP) $(SRC_ASM) -nmc4 -g -O0 $(INC_DIRS) $(LIB_DIRS) $(LIBS) -c$(CFG) -heap=0 -heap1=0 -heap2=0 -heap3=0
 #                                                                                         [L00]:64kB   [L01]:64kB  [G00]:64kB   [G01]:64kB
 
 
@@ -34,7 +34,7 @@ PATH:=$(MC12101)/bin;$(PATH)
 
 
 run: $(TARGET)
-	mc12101run $(TARGET) -q > ../../../perf_tables_float/$(notdir $(abspath ..)).h
+	mc12101run $(TARGET)
 
 test: .exitcode
 

@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 import shutil
 
 
@@ -21,5 +22,11 @@ def make_xml(include_path):
     copy_doxyfile()
     write_path_to_doxyfile(include_path)
     os.chdir('doxy')
-    os.system('doxygen')
+    with open(os.devnull, 'wb') as devnull:
+        try:
+            subprocess.check_call('doxygen', stdout=devnull, stderr=subprocess.STDOUT)
+            print('Creating xml files                         [OK]\n')
+        except Exception as err:
+            print(err)
+            print('Creating xml files                         [FAIL]\n')
     os.chdir('..')
