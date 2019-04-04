@@ -17,7 +17,7 @@ def get_tests_names(cmd_args):
 
 
 def config_tests(cmd_args):
-    doxy.make_xml(parsed_cmd_args.path_to_inc)
+    doxy.make_xml(os.path.abspath(parsed_cmd_args.path_to_inc))
     perf_tests_generator.generate_perf_tests_from_all_xml(parsed_cmd_args)
 
 

@@ -85,6 +85,7 @@ def copy_build_for_board(path_to_build, path_to_test):
 
     shutil.copytree(path_to_build, path_to_test)
 
+
 def get_contents_cppftest(path_to_build):
     build_dir_files = os.listdir(path_to_build)
     for file in build_dir_files:
@@ -204,34 +205,29 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
     return init_funcs, funcs_for_test
 
 
-def generate_makefile(point):
-    make_dir_name = 'make_mc12101_nmc0'
-    with open("Makefile", 'w') as file:
-        file.write('ALL_DIRS = $(wildcard *)\n\ndefine newline\n\n\nendef\n\nall:\n\t  $(foreach dir, $(ALL_DIRS), -$(MAKE) -C./$(dir)/{} run $(newline))\n'.format(make_dir_name))
-
-
 def generate_perf_tests_from_all_xml(cmd_args):
     log_dir_name = 'logs_gen_{}'.format(cmd_args.point)
     #tests_dir_name = 'perf_tests_{}'.format(cmd_args.point)
     #tables_dir_name = 'perf_tables_{}'.format(cmd_args.point)
 
-    path_to_log_dir = os.path.join(cmd_args.path_to_log, log_dir_name)
+    abs_path_to_log_dir = os.path.join(os.path.abspath(cmd_args.path_to_log), log_dir_name)
+    abs_path_to_build = os.path.abspath(cmd_args.path_to_build)
+    abs_path_to_xml = os.path.abspath(cmd_args.path_to_xml)
     #path_to_tests_dir = os.path.join(cmd_args.path_to_tests, tests_dir_name)
     #path_to_tables_dir = os.path.join(cmd_args.path_to_tables, tables_dir_name)
 
-    test_name, perf_test_contents = get_contents_cppftest(cmd_args.path_to_build)
+    test_name, perf_test_contents = get_contents_cppftest(abs_path_to_build)
     file_beginning = make_file_beginning(perf_test_contents)
 
-    xml_files = [file for file in os.listdir(cmd_args.path_to_xml) if 'group__' in file]
+    xml_files = [file for file in os.listdir(abs_path_to_xml) if 'group__' in file]
     try:
-        os.mkdir(path_to_log_dir)
+        os.mkdir(abs_path_to_log_dir)
         #os.mkdir(path_to_tests_dir)
         #os.mkdir(path_to_tables_dir)
     except OSError:
         pass
-    #generate_makefile(cmd_args.point)
     for file in xml_files:
-        xml_obj = xml_parser.open_xml(os.path.join(cmd_args.path_to_xml, file))
+        xml_obj = xml_parser.open_xml(os.path.join(abs_path_to_xml, file))
         # print(file)
         try:
             perf_scripts = xml_parser.get_perf_scripts(xml_obj)
@@ -249,7 +245,7 @@ def generate_perf_tests_from_all_xml(cmd_args):
                                                                           test_name,
                                                                           file_beginning,
                                                                           cmd_args.point,
-                                                                          cmd_args.path_to_build)
+                                                                          abs_path_to_build)
         except Exception as err:
             print(err)
             continue

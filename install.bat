@@ -1,2 +1,1 @@
-
 setx testperf %cd% /m
