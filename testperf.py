@@ -25,14 +25,12 @@ def run_tests(cmd_args):
     dirs_names = get_tests_names(cmd_args)
     for dir_name in dirs_names:
         os.chdir(dir_name)
-        os.system('make run > {}.md'.format(dir_name[5:]))
-        # with open(os.devnull, 'wb') as devnull:
-        #     try:
-        #         subprocess.check_call('make run > {}.md'.format(dir_name[5:]), stdout=devnull, stderr=subprocess.STDOUT)
-        #         print('{} test starting                          [OK]\n'.format(dir_name))
-        #     except Exception as err:
-        #         print(err)
-        #         print('{} test starting                         [FAIL]\n'.format(dir_name))
+        with open('{}.md'.format(dir_name[5:]), 'w') as md_file:
+            return_code = subprocess.call(['make', 'run'], stdout=md_file, stderr=subprocess.STDOUT)
+            status = '[OK]'
+            if return_code != 0:
+                status = '[FAIL]'
+            print('{} test starting{}{}\n'.format(dir_name[5:], ' ' * (47 - len(dir_name[5:]) + 14), status))
         os.chdir('..')
 
 
@@ -56,7 +54,7 @@ def gather_output_files(cmd_args):
 def config_and_run(cmd_args):
     config_tests(cmd_args)
     run_tests(cmd_args)
-    gather_output_files(cmd_args)
+    #gather_output_files(cmd_args)
 
 
 def parse_cmd_args():

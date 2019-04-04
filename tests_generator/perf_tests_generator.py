@@ -87,7 +87,7 @@ def copy_build_for_board(path_to_build, path_to_test):
 
 
 def get_contents_cppftest(path_to_build):
-    build_dir_files = os.listdir(path_to_build)
+    build_dir_files = [f for f in os.listdir(path_to_build) if '.cpp' or '.c' in f]
     for file in build_dir_files:
         with open(os.path.join(path_to_build, file), 'r') as r_file:
             file_contents = r_file.readlines()
@@ -143,6 +143,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     list_type = 'long long*'
                 else:
                     list_type = func.args_types[pos]
+                    #list_type = func.args_types[func.args_names.index(pss.args_names[pos])]
                 perf_param_names = perf_param.split(', ')
                 params_count = str(len(perf_param_names))
                 params = [''.join(['"', param, '"']) for param in perf_param_names]
@@ -153,6 +154,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 print_f_str += '{:<13}'.format('%s |')
                 print_f_args_str += 'name{0}[i{0}], '.format(index)
                 init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
+                #init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([list_type, pss.args_names[pos]]), list_type, index)
                 spaces += '  '
                 num += 1
             if pss.size is not None:
