@@ -105,13 +105,21 @@ def make_file_beginning(contents):
 def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_name, file_beginning, point, path_to_build):
     init_funcs = []
     funcs_for_test = []
+
+    '''В этом цикле перебируется все функции, найденные в одном
+       xml-файле (в одном файле функции, относящиеся к одной группе group_name)'''
     for func in functions:
+        # Проверяем для какой точки (плавающей или фиксированной) попалась функция и сопостовляем с ключом -p
         if point == 'fixed':
             if is_float_func(func):
                 continue
         if point == 'float':
             if not is_float_func(func):
                 continue
+
+        '''Проверяем, совпадают ли аргументы тестируемой функции с аргументами,
+           указаныыми в сценарии производительности, для этой функции.
+           Если не совпадают, то такая функция пропускается, тест для нее не создается'''
         if set(func.args_names) != set(perf_scripts[0].args_names):
             init_funcs.append(func.name + '\n')
             print('Error:')
@@ -120,9 +128,10 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             continue
         else:
             funcs_for_test.append(func.name + '\n')
+
         print('Creating the perf test for {}...'.format(func.name))
-        test_dir_name = '_'.join(['perf', func.name])
-        copy_build_for_board(path_to_build, test_dir_name)
+        test_dir_name = '_'.join(['perf', func.name])               # Имя дериктории с тестом
+        copy_build_for_board(path_to_build, test_dir_name)          # Копируем шаблон для будщего теста
         num = 0
         lists = []    # for the writting
         names = []
@@ -132,6 +141,8 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
         print_f = []
         path_to_test = os.path.join(test_dir_name, test_name)
         max_spaces = '  ' * len(func.args_names)
+
+        # В этом цикле перебираеются все сценарии производительности, описанные для группы(group_name) функций
         for pss in perf_scripts:
             called_str = '{}({};\n'.format(func.name, ', '.join(func.args_names))
             init_args_str = ''
