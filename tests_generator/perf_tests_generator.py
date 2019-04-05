@@ -14,7 +14,7 @@ def parse_perf_scripts(perf_scripts):
     PerfScripts = namedtuple('PerfScripts', 'perf_params args_names size init deinit')
     for perf_script in perf_scripts:
         try:
-            size = perf_script.pop('size')
+            size = perf_script.pop('custom_size_name_fig_podberesh')
             size = size.strip()
         except Exception:
             size = None
@@ -114,9 +114,13 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 continue
         if set(func.args_names) != set(perf_scripts[0].args_names):
             init_funcs.append(func.name + '\n')
+            print('Error:')
+            print('{} args = {} mismatch with the testperf args = {}.'.format(func.name, func.args_names, perf_scripts[0].args_names))
+            print("The perfomance test for {} hasn't been created!".format(func.name))
             continue
         else:
             funcs_for_test.append(func.name + '\n')
+        print('Creating the perf test for {}...'.format(func.name))
         test_dir_name = '_'.join(['perf', func.name])
         copy_build_for_board(path_to_build, test_dir_name)
         num = 0
@@ -158,8 +162,8 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 spaces += '  '
                 num += 1
             if pss.size is not None:
-                init_args_str += '  {}int size = {};\n'.format(max_spaces, pss.size)
-                size_str = 'size'
+                init_args_str += '  {}int size123 = {};\n'.format(max_spaces, pss.size)
+                size_str = 'size123'
             else:
                 size_str = ''.join(['atoi(', print_f_args_str.split(', ')[-2], ')'])
             if pss.init is None:
@@ -202,8 +206,10 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 file.write('  printf("*/{}");\n'.format(r"\n"))
                 file.write('  printf("{0}{1}{1}");\n'.format(func.prototype, r"\n"))
                 file.write('  return 0;\n}\n')
+            print('Creating the perf test for {}{}[OK]'.format(func.name, ' ' * (30 - len(func.name))))
         except Exception as exc:
             print(path_to_test, exc)
+
     return init_funcs, funcs_for_test
 
 

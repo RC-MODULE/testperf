@@ -27,7 +27,7 @@ def get_perf_scripts(xml_doc):
         if freemem_tag:
             perf_script_dict['freemem'] = freemem_tag[0].firstChild.data
         if size_tag:
-            perf_script_dict['size'] = size_tag[0].firstChild.data
+            perf_script_dict['custom_size_name_fig_podberesh'] = size_tag[0].firstChild.data
         for i in range(param_tag.length):
             param = param_tag[i].firstChild.data.strip()
             value = values_tag[i].firstChild.data.strip()
