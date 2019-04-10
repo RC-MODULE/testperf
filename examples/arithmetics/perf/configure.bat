@@ -1,0 +1,1 @@
+testperf config -i ..\include  -b make_mc12101_nmpu0

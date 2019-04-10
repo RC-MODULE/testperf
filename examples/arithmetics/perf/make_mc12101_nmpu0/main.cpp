@@ -18,5 +18,6 @@
 
 int main()
 {
+	printf("sdf");
   return 0;
 }
