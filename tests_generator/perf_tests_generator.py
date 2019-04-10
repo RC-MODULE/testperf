@@ -122,9 +122,11 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
            Если не совпадают, то такая функция пропускается, тест для нее не создается'''
         if set(func.args_names) != set(perf_scripts[0].args_names):
             init_funcs.append(func.name + '\n')
+            print('-----------------------------------------------------')
             print('Error:')
             print('{} args = {} mismatch with the testperf args = {}.'.format(func.name, func.args_names, perf_scripts[0].args_names))
             print("The perfomance test for {} hasn't been created!".format(func.name))
+            print('-----------------------------------------------------')
             continue
         else:
             funcs_for_test.append(func.name + '\n')
@@ -157,8 +159,9 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 if not perf_param.replace(', ', '').replace('.', '').replace('-', '').replace('0x', '').isdigit():
                     list_type = 'long long*'
                 else:
-                    list_type = func.args_types[pos]
-                    #list_type = func.args_types[func.args_names.index(pss.args_names[pos])]
+                    # list_type = func.args_types[pos]
+                    list_type = func.args_types[func.args_names.index(pss.args_names[pos])]
+                new_list_type = func.args_types[func.args_names.index(pss.args_names[pos])]
                 perf_param_names = perf_param.split(', ')
                 params_count = str(len(perf_param_names))
                 params = [''.join(['"', param, '"']) for param in perf_param_names]
@@ -168,8 +171,8 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 cycles_str += '{0}for(int i{1} = 0; i{1} < {2}; i{1}++) {3}'.format(spaces, index, params_count, '{\n')
                 print_f_str += '{:<13}'.format('%s |')
                 print_f_args_str += 'name{0}[i{0}], '.format(index)
-                init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
-                #init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([list_type, pss.args_names[pos]]), list_type, index)
+                # init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
+                init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([new_list_type, pss.args_names[pos]]), new_list_type, index)
                 spaces += '  '
                 num += 1
             if pss.size is not None:
@@ -218,6 +221,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 file.write('  printf("{0}{1}{1}");\n'.format(func.prototype, r"\n"))
                 file.write('  return 0;\n}\n')
             print('Creating the perf test for {}{}[OK]'.format(func.name, ' ' * (30 - len(func.name))))
+            print('\n')
         except Exception as exc:
             print(path_to_test, exc)
 
@@ -239,6 +243,13 @@ def generate_perf_tests_from_all_xml(cmd_args):
     file_beginning = make_file_beginning(perf_test_contents)
 
     xml_files = [file for file in os.listdir(abs_path_to_xml) if 'group__' in file]
+    if not xml_files:
+        print('-------------------------------------------------------')
+        print("xml files with the functions prototypes weren't found!")
+        print("The perf tests won't be created!")
+        print('-------------------------------------------------------')
+        return
+
     try:
         os.mkdir(abs_path_to_log_dir)
         #os.mkdir(path_to_tests_dir)
