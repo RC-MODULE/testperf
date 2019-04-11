@@ -15,9 +15,9 @@
          <param> nSize </param> <values> 2048 </values>
     </testperf>
     <testperf>
-         <param> pSrcVec1 </param> <values> L </values>
-         <param> pSrcVec2 </param> <values> G </values>
-         <param> pDstVec </param> <values> im2 </values>
+         <param> pSrcVec1 </param> <values> im1 </values>
+         <param> pSrcVec2 </param> <values> im2 </values>
+         <param> pDstVec </param> <values> im3 </values>
          <param> nSize </param> <values> 8 128 1024 2048 </values>
     </testperf>
 \endxmlonly
@@ -38,11 +38,11 @@ void nmppsAdd_32f(const nm32f* pSrcVec1, const nm32f* pSrcVec2, nm32f* pDstVec, 
 \par
 \xmlonly
 	<testperf>
-		 <param> pSrcVec1 </param> <values> im1 </values>
-		 <param> pSrcVec2 </param> <values> im2 </values>
+		 <param> pSrcVec1 </param> <values> im1 im2 </values>
+		 <param> pSrcVec2 </param> <values> im2 im1 </values>
 		 <param> pSrcVecAdd </param> <values> im3 </values>
 		 <param> pDstVec </param> <values> im4 </values>
-		 <param> nSize </param> <values> 2048 </values>
+		 <param> nSize </param> <values> 2048*2 </values>
 	</testperf>
 	<testperf>
 		<param> pSrcVec1 </param> <values> im1 </values>

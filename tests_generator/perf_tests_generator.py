@@ -138,14 +138,17 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
         lists = []    # for the writting
         names = []
         cycles = []  # for the writting
+        without_cycles = []  # for the writting
         called_funcs = []
         init_args = []
         print_f = []
+        brackets = []
+        size123 = []
         path_to_test = os.path.join(test_dir_name, test_name)
         max_spaces = '  ' * len(func.args_names)
 
         # В этом цикле перебираеются все сценарии производительности, описанные для группы(group_name) функций
-        for pss in perf_scripts:
+        for i_pss, pss in enumerate(perf_scripts):
             called_str = '{}({};\n'.format(func.name, ', '.join(func.args_names))
             init_args_str = ''
             print_f_str = ''
@@ -153,32 +156,47 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             names_str = ''
             lists_str = ''
             cycles_str = ''  # for the writting
+            without_cycle = ''
+            size123_str = ''
             spaces = '  '
             for pos, perf_param in enumerate(pss.perf_params):
+                perf_param_names = perf_param.split(', ')
+                params_count = len(perf_param_names)
+                arg_type = func.args_types[func.args_names.index(pss.args_names[pos])]
+
                 index = str(num)
+
                 if not perf_param.replace(', ', '').replace('.', '').replace('-', '').replace('0x', '').isdigit():
                     list_type = 'long long*'
                 else:
                     # list_type = func.args_types[pos]
-                    list_type = func.args_types[func.args_names.index(pss.args_names[pos])]
-                new_list_type = func.args_types[func.args_names.index(pss.args_names[pos])]
-                perf_param_names = perf_param.split(', ')
-                params_count = str(len(perf_param_names))
+                    list_type = arg_type
+
                 params = [''.join(['"', param, '"']) for param in perf_param_names]
                 params_str = ', '.join(params)
-                lists_str += '{2} list{0}[] = {1};\n'.format(index, ''.join(['{', perf_param, '}']), list_type)
-                names_str += 'char* name{}[] = {};\n'.format(index, ''.join(['{', params_str, '}']))
-                cycles_str += '{0}for(int i{1} = 0; i{1} < {2}; i{1}++) {3}'.format(spaces, index, params_count, '{\n')
                 print_f_str += '{:<13}'.format('%s |')
-                print_f_args_str += 'name{0}[i{0}], '.format(index)
-                # init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
-                init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([new_list_type, pss.args_names[pos]]), new_list_type, index)
-                spaces += '  '
+                names_str += '  char* name{}[] = {};\n'.format(index, ''.join(['{', params_str, '}']))
+                '''Проверка на то, сколько значений для аргумента функции было задано в сценарии производительности.
+                   Если 1 параметр, то цикл не создается. (Если больше 1, то создается цикл.)
+                   Вместо него создается переменная, которой присваивается значение из сценария производительность.
+                   Эта переменная передается в качестве аргумента функции.'''
+                if params_count == 1:
+                    without_cycle += '{0}{1} {2} = ({1})({3});\n'.format(spaces, arg_type, pss.args_names[pos], perf_param)
+                    print_f_args_str += 'name{0}[0], '.format(index)
+                elif params_count > 1:
+                    lists_str += '  {2} list{0}[] = {1};\n'.format(index, ''.join(['{', perf_param, '}']), list_type)
+                    cycles_str += '{0}for(int i{1} = 0; i{1} < {2}; i{1}++) {3}'.format(spaces, index, str(params_count), '{\n')
+                    init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(spaces, ' '.join([arg_type, pss.args_names[pos]]), arg_type, index)
+                    print_f_args_str += 'name{0}[i{0}], '.format(index)
+                    spaces += '  '
                 num += 1
+
+                # init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
             if pss.size is not None:
-                init_args_str += '  {}int size123 = {};\n'.format(max_spaces, pss.size)
+                size123_str = '  {}int size123 = {};\n'.format(max_spaces, pss.size)
                 size_str = 'size123'
             else:
+                size123_str = ''
                 size_str = ''.join(['atoi(', print_f_args_str.split(', ')[-2], ')'])
             if pss.init is None:
                 called_str = '{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, called_str[:-2])
@@ -191,14 +209,19 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             printf_f_str = '{0}printf({1}, {2} t2 - t1, (float)(t2 - t1) / {3});\n'.format(spaces, print_f_str, print_f_args_str, size_str)
             lists.append(lists_str)
             cycles.append(cycles_str)
+            without_cycles.append(without_cycle)
             called_funcs.append(called_str)
             init_args.append(init_args_str)
             names.append(names_str)
             print_f.append(printf_f_str)
-        brackets = []
-        for i in func.args_types:
-            spaces = spaces.replace('  ', '', 1)
-            brackets.append(spaces + '}\n')
+            size123.append(size123_str)
+            count_cycles = cycles_str.count('for(int ')
+            brackets_str = ''
+            for i in range(count_cycles):
+                spaces = spaces.replace('  ', '', 1)
+                brackets_str += spaces + '}\n'
+            brackets.append(brackets_str)
+
         try:
             with open(path_to_test, 'w') as file:
                 file.write(file_beginning)
@@ -208,14 +231,18 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 file.write('  printf("{2}**{1}{3}ingroup {0}{1}");\n'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
                 for i, cycle in enumerate(cycles):
                     s = '   |   '.join(perf_scripts[i].args_names)
+                    file.write('{\n')
                     file.write('  printf("testperf {0}{1}{1}");\n'.format(str(i), r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
                     file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].args_names) + 1), r"\n"))
                     file.write(cycle)
                     file.write(init_args[i])
+                    file.write(without_cycles[i])
+                    file.write(size123[i])
                     file.write(called_funcs[i])
                     file.write(print_f[i])
-                    file.writelines(brackets)
+                    file.write(brackets[i])
+                    file.write('}\n')
                 file.write('\n')
                 file.write('  printf("*/{}");\n'.format(r"\n"))
                 file.write('  printf("{0}{1}{1}");\n'.format(func.prototype, r"\n"))
