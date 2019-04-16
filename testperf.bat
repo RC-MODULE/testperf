@@ -1,1 +1,1 @@
-python %testperf%\testperf.py %1 %2 %3 %4 %5
+python %testperf%\testperf.py %1 %2 %3 %4 %5 %6 %7 

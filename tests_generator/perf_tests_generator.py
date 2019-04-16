@@ -256,15 +256,22 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
 
 
 def generate_perf_tests_from_all_xml(cmd_args):
-    log_dir_name = 'logs_gen_{}'.format(cmd_args.point)
+    #log_dir_name = 'logs_gen_{}'.format(cmd_args.point)
     #tests_dir_name = 'perf_tests_{}'.format(cmd_args.point)
     #tables_dir_name = 'perf_tables_{}'.format(cmd_args.point)
 
-    abs_path_to_log_dir = os.path.join(os.path.abspath(cmd_args.path_to_log), log_dir_name)
+    #abs_path_to_log_dir = os.path.join(os.path.abspath(cmd_args.path_to_log), log_dir_name)
     abs_path_to_build = os.path.abspath(cmd_args.path_to_build)
     abs_path_to_xml = os.path.abspath(cmd_args.path_to_xml)
     #path_to_tests_dir = os.path.join(cmd_args.path_to_tests, tests_dir_name)
     #path_to_tables_dir = os.path.join(cmd_args.path_to_tables, tables_dir_name)
+
+    if not os.path.exists(abs_path_to_build):
+        print('-----------------------------------------------------')
+        print("Error! Path: '{}' doesn't exist".format(cmd_args.path_to_build))
+        print("The perf tests won't be created!")
+        print('-----------------------------------------------------')
+        return
 
     test_name, perf_test_contents = get_contents_cppftest(abs_path_to_build)
     file_beginning = make_file_beginning(perf_test_contents)
@@ -277,12 +284,12 @@ def generate_perf_tests_from_all_xml(cmd_args):
         print('-------------------------------------------------------')
         return
 
-    try:
-        os.mkdir(abs_path_to_log_dir)
-        #os.mkdir(path_to_tests_dir)
-        #os.mkdir(path_to_tables_dir)
-    except OSError:
-        pass
+    # try:
+    #     #os.mkdir(abs_path_to_log_dir)
+    #     #os.mkdir(path_to_tests_dir)
+    #     #os.mkdir(path_to_tables_dir)
+    # except OSError:
+    #     pass
     for file in xml_files:
         xml_obj = xml_parser.open_xml(os.path.join(abs_path_to_xml, file))
         # print(file)
