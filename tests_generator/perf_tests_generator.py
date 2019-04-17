@@ -87,13 +87,17 @@ def copy_build_for_board(path_to_build, path_to_test):
 
 
 def get_contents_cppftest(path_to_build):
-    build_dir_files = [f for f in os.listdir(path_to_build) if '.cpp' or '.c' in f]
+    build_dir_files = [f for f in os.listdir(path_to_build) if f[-4:] == '.cpp' or f[-2:] == '.c']
+    if not build_dir_files:
+        raise FileNotFoundError
     for file in build_dir_files:
         with open(os.path.join(path_to_build, file), 'r') as r_file:
             file_contents = r_file.readlines()
             for line in file_contents:
                 if 'int main' in line:
                     return file, file_contents
+    raise ValueError
+
 
 
 def make_file_beginning(contents):
@@ -273,7 +277,23 @@ def generate_perf_tests_from_all_xml(cmd_args):
         print('-----------------------------------------------------')
         return
 
-    test_name, perf_test_contents = get_contents_cppftest(abs_path_to_build)
+    try:
+        test_name, perf_test_contents = get_contents_cppftest(abs_path_to_build)
+    except FileNotFoundError:
+        print('-------------------------------------------------------')
+        print('Error:')
+        print("A template with a 'int main()' function wasn't found!")
+        print("The perf tests won't be created!")
+        print('-------------------------------------------------------')
+        return
+    except ValueError:
+        print('-------------------------------------------------------')
+        print('Error:')
+        print("'int main()' function wasn't found in the template!")
+        print("The perf tests won't be created!")
+        print('-------------------------------------------------------')
+        return
+
     file_beginning = make_file_beginning(perf_test_contents)
 
     xml_files = [file for file in os.listdir(abs_path_to_xml) if 'group__' in file]
