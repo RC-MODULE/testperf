@@ -232,7 +232,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 file.writelines(lists)
                 file.writelines(names)
                 file.write('\n  clock_t t1, t2;\n')
-                file.write('  printf("{2}**{1}{3}ingroup {0}{1}");\n'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
+                file.write('  printf("{2}**{1}{3}ingroup {0}{1}{1}");\n'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
                 for i, cycle in enumerate(cycles):
                     s = '   |   '.join(perf_scripts[i].args_names)
                     file.write('{\n')
