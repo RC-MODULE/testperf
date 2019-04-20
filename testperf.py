@@ -72,6 +72,16 @@ def gather_output_files(cmd_args):
                     shutil.copy(os.path.join(dir_name, file_name), tbl_name)
 
 
+def kill_tests(cmd_args):
+    perf_test_list = [perf_test_name for perf_test_name in os.listdir() if 'perf_' in perf_test_name]
+    if not perf_test_list:
+        print("Perf tests weren't found!")
+        return
+    for perf_test in perf_test_list:
+        shutil.rmtree(perf_test)
+        print('remove {}'.format(perf_test))
+
+
 def config_and_run(cmd_args):
     config_tests(cmd_args)
     run_tests(cmd_args)
@@ -83,6 +93,7 @@ def parse_cmd_args():
     subparsers = args_parser.add_subparsers()
     config_parser = subparsers.add_parser('config')
     run_parser = subparsers.add_parser('run')
+    kill_parser = subparsers.add_parser('kill')
     out_parser = subparsers.add_parser('outdir')
     all_parser = subparsers.add_parser('all')
 
@@ -109,6 +120,7 @@ def parse_cmd_args():
 
     config_parser.set_defaults(func=config_tests)
     run_parser.set_defaults(func=run_tests)
+    kill_parser.set_defaults(func=kill_tests)
     out_parser.set_defaults(func=gather_output_files)
     all_parser.set_defaults(func=config_and_run)
 
