@@ -150,6 +150,10 @@ __Этот параметр не имеет значения по умолчан
 
 *testperf all -i \<path> -b \<path>*
 
+#### Запуск с ключом kill
+
+*testperf kill*
+
 #### Запуск с ключом outdir
 
 *testperf outdir*
