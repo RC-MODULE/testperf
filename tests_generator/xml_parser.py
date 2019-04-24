@@ -11,6 +11,9 @@ def get_group_name(xml_doc):
 
 
 def get_perf_scripts(xml_doc):
+    #  Функция ищет в переданном ей xml-файле тег testperf.
+    #  В этом теге заключена информации сценария производительности, которую и достает данная функция.
+    #  Функция принимает на в качестве параметра открытый xml-файл.
     test_perf_tag = xml_doc.getElementsByTagName('testperf')
     if not test_perf_tag:
         raise Exception("hasn't a testperf script")
@@ -33,6 +36,11 @@ def get_perf_scripts(xml_doc):
             value = values_tag[i].firstChild.data.strip()
             perf_script_dict[param] = value
         perf_scripts_list.append(perf_script_dict)
+    #  Функция возвращает список словарей.
+    #  Ключами таких словарей являются названия ппараметров для группы функций, а значения словаря это значения
+    #  параметров этих параметров, заданных в сценариях производительнрости.
+    #  Каждый элемент списка (словарь) описвает отдельный сценарий производительности для группы функций в пределах
+    #  одного xml-файла.
     return perf_scripts_list
 
 

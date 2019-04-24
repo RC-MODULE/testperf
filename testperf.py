@@ -43,8 +43,10 @@ def run_tests(cmd_args):
                 begin = out_after_make.index('/**')
                 end = out_after_make.index(');')
                 out_after_make = out_after_make[begin:end + 2]
+
                 with open('{}.md'.format(dir_name[5:]), 'w') as md_file:
                     md_file.write(out_after_make)
+
                 info_about_log = 'There are perf tables in {}.md'.format(dir_name[5:])
             except ValueError:
                 #status = '[FAIL]'
@@ -56,20 +58,28 @@ def run_tests(cmd_args):
 
 
 def gather_output_files(cmd_args):
-    extensions_names = ['.md', '.h']
     dirs_names = get_tests_names(cmd_args)
     if not dirs_names:
         return
     tbl_name = os.path.join(cmd_args.path_to_tables, 'tables')
+    log_name = os.path.join(cmd_args.path_to_tables, 'failed_tests_logs')
     try:
         os.mkdir(tbl_name)
+        os.mkdir(log_name)
     except OSError:
         pass
     for dir_name in dirs_names:
-        for file_name in os.listdir(dir_name):
-            for ext_name in extensions_names:
-                if ext_name in file_name:
-                    shutil.copy(os.path.join(dir_name, file_name), tbl_name)
+        files_in_test = os.listdir(dir_name)
+        try:
+            md_file = files_in_test[files_in_test.index(dir_name[5:] + '.md')]
+            shutil.copy(os.path.join(dir_name, md_file), tbl_name)
+        except ValueError as value_error:
+            log_file = files_in_test[files_in_test.index(dir_name[5:] + '.log')]
+            shutil.copy(os.path.join(dir_name, log_file), log_name)
+    os.chdir('tables')
+    for md_file in os.listdir():
+        os.rename(md_file, md_file[:-3] + '.h')
+    os.chdir('..')
 
 
 def kill_tests(cmd_args):
