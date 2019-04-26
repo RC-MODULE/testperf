@@ -126,11 +126,11 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
         if set(func.args_names) != set(perf_scripts[0].args_names):
             init_funcs.append(func.name + '\n')
             print('-----------------------------------------------------')
-            print('Error:')
+            print('Warning:')
             print('{} args = {} mismatch with the testperf args = {}.'.format(func.name, func.args_names, perf_scripts[0].args_names))
             print("The perfomance test for {} hasn't been created!".format(func.name))
             print('-----------------------------------------------------')
-            continue
+            # continue
         else:
             funcs_for_test.append(func.name + '\n')
 

@@ -1,7 +1,6 @@
 /**
 \defgroup nmppsAdd_f nmppsAdd
 \brief Сложение двух векторов.
-
 \param pSrcVec1 [in] Первый входной вектор.
 \param pSrcVec2 [in] Второй входной вектор.
 \param nSize [in] Размер вектора в элементах.
@@ -34,7 +33,6 @@ void nmppsAdd_32f(const nm32f* pSrcVec1, const nm32f* pSrcVec2, nm32f* pDstVec, 
 \param pSrcVecAdd [in] Входной вектор
 \param nSize [in] Размер векторов в элементах
 \retval pDstVec [out] Результирующий вектор
-
 \par
 \xmlonly
 	<testperf>
