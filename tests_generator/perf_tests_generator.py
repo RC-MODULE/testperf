@@ -172,8 +172,8 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 if not perf_param.replace(', ', '').replace('.', '').replace('-', '').replace('0x', '').isdigit():
                     list_type = 'long long*'
                 else:
-                    # list_type = func.args_types[pos]
-                    list_type = arg_type
+                    list_type = func.args_types[pos]
+                    # list_type = arg_type
 
                 params = [''.join(['"', param, '"']) for param in perf_param_names]
                 params_str = ', '.join(params)
@@ -189,12 +189,12 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 elif params_count > 1:
                     lists_str += '  {2} list{0}[] = {1};\n'.format(index, ''.join(['{', perf_param, '}']), list_type)
                     cycles_str += '{0}for(int i{1} = 0; i{1} < {2}; i{1}++) {3}'.format(spaces, index, str(params_count), '{\n')
-                    init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(spaces, ' '.join([arg_type, pss.args_names[pos]]), arg_type, index)
+                    init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
+                    # init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(spaces, ' '.join([arg_type, pss.args_names[pos]]), arg_type, index)
                     print_f_args_str += 'name{0}[i{0}], '.format(index)
                     spaces += '  '
                 num += 1
 
-                # init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
             if pss.size is not None:
                 size123_str = '  {}int size123 = {};\n'.format(max_spaces, pss.size)
                 size_str = 'size123'
