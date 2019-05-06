@@ -9,7 +9,8 @@ def copy_doxyfile():
     try:
         os.mkdir('doxy')
         shutil.copy(doxyfile, 'doxy')
-    except FileExistsError:
+    except OSError:
+        shutil.rmtree(os.path.join('doxy', 'xml'))
         shutil.copy(doxyfile, 'doxy')
 
 
