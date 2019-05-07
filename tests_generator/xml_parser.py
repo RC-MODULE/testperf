@@ -1,4 +1,5 @@
 from xml.dom import minidom
+import collections
 
 
 def open_xml(xml_name):
@@ -17,25 +18,20 @@ def get_perf_scripts(xml_doc):
     test_perf_tag = xml_doc.getElementsByTagName('testperf')
     if not test_perf_tag:
         raise Exception("hasn't a testperf script")
-    perf_scripts_list = []
-    for perf_script in test_perf_tag:
-        perf_script_dict = {}
-        param_tag = perf_script.getElementsByTagName('param')
-        values_tag = perf_script.getElementsByTagName('values')
-        init_tag = perf_script.getElementsByTagName('init')
-        freemem_tag = perf_script.getElementsByTagName('freemem')
-        size_tag = perf_script.getElementsByTagName('size')
-        if init_tag:
-            perf_script_dict['init'] = init_tag[0].firstChild.data
-        if freemem_tag:
-            perf_script_dict['freemem'] = freemem_tag[0].firstChild.data
-        if size_tag:
-            perf_script_dict['custom_size_name_fig_podberesh'] = size_tag[0].firstChild.data
-        for i in range(param_tag.length):
-            param = param_tag[i].firstChild.data.strip()
-            value = values_tag[i].firstChild.data.strip()
-            perf_script_dict[param] = value
-        perf_scripts_list.append(perf_script_dict)
+    perf_scripts_list = [collections.OrderedDict() for i in enumerate(test_perf_tag)]
+    for map_num, perf_script in enumerate(test_perf_tag):
+        for node in perf_script.childNodes:
+            if node.nodeType == node.ELEMENT_NODE:
+                if node.tagName == 'param':
+                    param = node.firstChild.data.strip()
+                    value = node.getAttribute('values')
+                else:
+                    if node.tagName == 'size':
+                        param = 'custom_size_name_fig_podberesh'
+                    else:
+                        param = node.tagName
+                    value = node.firstChild.data.strip()
+                perf_scripts_list[map_num][param] = value
     #  Функция возвращает список словарей.
     #  Ключами таких словарей являются названия ппараметров для группы функций, а значения словаря это значения
     #  параметров этих параметров, заданных в сценариях производительнрости.

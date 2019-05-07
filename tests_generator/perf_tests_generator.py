@@ -80,10 +80,11 @@ def is_float_func(func):
 
 
 def copy_build_for_board(path_to_build, path_to_test):
-    if os.path.exists(path_to_test):
-        shutil.rmtree(path_to_test)
-
-    shutil.copytree(path_to_build, path_to_test)
+    if not os.path.exists(path_to_test):
+        # shutil.rmtree(path_to_test)
+        os.mkdir(path_to_test)
+    for file in os.listdir(path_to_build):
+        shutil.copy(os.path.join(path_to_build, file), path_to_test)
 
 
 def get_contents_cppftest(path_to_build):
@@ -135,6 +136,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
 
         print('Creating the perf test for {}...'.format(func.name))
         test_dir_name = '_'.join(['perf', func.name])               # Имя дериктории с тестом
+
         copy_build_for_board(path_to_build, test_dir_name)          # Копируем шаблон для будщего теста
         num = 0
         lists = []    # for the writting
