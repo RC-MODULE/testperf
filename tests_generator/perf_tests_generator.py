@@ -11,29 +11,34 @@ from tests_generator import logs_generator
 
 def parse_perf_scripts(perf_scripts):
     prf_scs = []
-    PerfScripts = namedtuple('PerfScripts', 'perf_params args_names size init deinit')
+    PerfScripts = namedtuple('PerfScripts', 'param_values param_names param_types size init deinit')
     for perf_script in perf_scripts:
         try:
-            size = perf_script.pop('custom_size_name_fig_podberesh')
+            size = perf_script.pop(('custom_size_name_fig_podberesh', ''))
             size = size.strip()
         except Exception:
             size = None
         try:
-            init_func = perf_script.pop('init')
+            init_func = perf_script.pop(('init', ''))
             init_func = init_func.strip()
         except Exception:
             init_func = None
         try:
-            deinit_func = perf_script.pop('deinit')
+            deinit_func = perf_script.pop(('deinit', ''))
             deinit_func = deinit_func.strip()
         except Exception:
             deinit_func = None
-        perf_params_list = []
-        for perf_param in perf_script.values():
-            perf_param = perf_param.strip()
-            perf_param = perf_param.replace(' ', ', ')
-            perf_params_list.append(perf_param)
-        prf_scs.append(PerfScripts(perf_params_list, list(perf_script.keys()), size, init_func, deinit_func))
+        values_list = []
+        types_list = []
+        names_list = []
+        for perf_param in perf_script.keys():
+            param_value = perf_script.get(perf_param).strip()
+            param_value = param_value.replace(' ', ', ')
+
+            values_list.append(param_value)
+            names_list.append(perf_param[0])
+            types_list.append(perf_param[1])
+        prf_scs.append(PerfScripts(values_list, names_list, types_list, size, init_func, deinit_func))
     return prf_scs
 
 
@@ -124,11 +129,11 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
         '''Проверяем, совпадают ли аргументы тестируемой функции с аргументами,
            указаныыми в сценарии производительности, для этой функции.
            Если не совпадают, то такая функция пропускается, тест для нее не создается'''
-        if set(func.args_names) != set(perf_scripts[0].args_names):
+        if set(func.args_names) != set(perf_scripts[0].param_names):
             init_funcs.append(func.name + '\n')
             print('-----------------------------------------------------')
             print('Warning:')
-            print('{} args = {} mismatch with the testperf args = {}.'.format(func.name, func.args_names, perf_scripts[0].args_names))
+            print('{} args = {} mismatch with the testperf args = {}.'.format(func.name, func.args_names, perf_scripts[0].param_names))
             print('-----------------------------------------------------')
             #continue
         else:
@@ -163,10 +168,13 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             without_cycle = ''
             size123_str = ''
             spaces = '  '
-            for pos, perf_param in enumerate(pss.perf_params):
+            for pos, perf_param in enumerate(pss.param_values):
                 perf_param_names = perf_param.split(', ')
                 params_count = len(perf_param_names)
-                arg_type = func.args_types[func.args_names.index(pss.args_names[pos])]
+                if pss.param_types[pos] != '':
+                    arg_type = pss.param_types[pos]
+                else:
+                   arg_type = func.args_types[func.args_names.index(pss.param_names[pos])]
 
                 index = str(num)
 
@@ -185,12 +193,12 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                    Вместо него создается переменная, которой присваивается значение из сценария производительность.
                    Эта переменная передается в качестве аргумента функции.'''
                 if params_count == 1:
-                    without_cycle += '{0}{1} {2} = ({1})({3});\n'.format(spaces, arg_type, pss.args_names[pos], perf_param)
+                    without_cycle += '{0}{1} {2} = ({1})({3});\n'.format(spaces, arg_type, pss.param_names[pos], perf_param)
                     print_f_args_str += 'name{0}[0], '.format(index)
                 elif params_count > 1:
                     lists_str += '  {2} list{0}[] = {1};\n'.format(index, ''.join(['{', perf_param, '}']), list_type)
                     cycles_str += '{0}for(int i{1} = 0; i{1} < {2}; i{1}++) {3}'.format(spaces, index, str(params_count), '{\n')
-                    init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(spaces, ' '.join([arg_type, pss.args_names[pos]]), arg_type, index)
+                    init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(spaces, ' '.join([arg_type, pss.param_names[pos]]), arg_type, index)
                     print_f_args_str += 'name{0}[i{0}], '.format(index)
                     spaces += '  '
                 num += 1
@@ -236,11 +244,11 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 # file.write(
                 #     '  printf("{3}ingroup {0}{1}{1}");\n'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
                 for i, cycle in enumerate(cycles):
-                    s = '   |   '.join(perf_scripts[i].args_names)
+                    s = '   |   '.join(perf_scripts[i].param_names)
                     file.write('{\n')
                     file.write('  printf("Perfomance table {0}{1}{1}");\n'.format(str(i), r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
-                    file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].args_names) + 1), r"\n"))
+                    file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].param_names) + 1), r"\n"))
                     file.write(cycle)
                     file.write(init_args[i])
                     file.write(without_cycles[i])

@@ -16,22 +16,26 @@ def get_perf_scripts(xml_doc):
     #  В этом теге заключена информации сценария производительности, которую и достает данная функция.
     #  Функция принимает на в качестве параметра открытый xml-файл.
     test_perf_tag = xml_doc.getElementsByTagName('testperf')
+
     if not test_perf_tag:
         raise Exception("hasn't a testperf script")
     perf_scripts_list = [collections.OrderedDict() for i in enumerate(test_perf_tag)]
+
     for map_num, perf_script in enumerate(test_perf_tag):
         for node in perf_script.childNodes:
             if node.nodeType == node.ELEMENT_NODE:
+                param_type = node.getAttribute('type')
                 if node.tagName == 'param':
-                    param = node.firstChild.data.strip()
-                    value = node.getAttribute('values')
+                    param_name = node.getAttribute('name').strip()
+                    values = node.firstChild.data.strip()
                 else:
                     if node.tagName == 'size':
-                        param = 'custom_size_name_fig_podberesh'
+                        param_name = 'custom_size_name_fig_podberesh'
                     else:
-                        param = node.tagName
-                    value = node.firstChild.data.strip()
-                perf_scripts_list[map_num][param] = value
+                        param_name = node.tagName
+                    values = node.firstChild.data.strip()
+                perf_scripts_list[map_num][(param_name, param_type)] = values
+
     #  Функция возвращает список словарей.
     #  Ключами таких словарей являются названия ппараметров для группы функций, а значения словаря это значения
     #  параметров этих параметров, заданных в сценариях производительнрости.
