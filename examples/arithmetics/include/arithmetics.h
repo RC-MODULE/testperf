@@ -8,16 +8,16 @@
 \par
 \xmlonly
     <testperf>
-         <param values=" im1 im2 "> pSrcVec1 </param>
-         <param values=" im1 im2 "> pSrcVec2 </param>
-         <param values=" im2 "> pDstVec </param>
-         <param values=" 2048 "> nSize </param>
+         <param name=" pSrcVec1 "> im1 im2 </param>
+         <param name=" pSrcVec2 "> im1 im2 </param>
+         <param name=" pDstVec "> im2 </param>
+         <param name=" nSize "> 2048 </param>
     </testperf>
     <testperf>
-         <param values=" im1 "> pSrcVec1 </param>
-         <param values=" im2 "> pSrcVec2 </param>
-         <param values=" im3 "> pDstVec </param>
-         <param values=" 8 128 1024 2048 "> nSize </param>
+         <param name=" pSrcVec1 "> im1 </param>
+         <param name=" pSrcVec2 "> im2 </param>
+         <param name=" pDstVec "> im3 </param>
+         <param name=" nSize "> 8 128 1024 2048 </param>
     </testperf>
 \endxmlonly
 */
@@ -36,18 +36,18 @@ void nmppsAdd_32f(const nm32f* pSrcVec1, const nm32f* pSrcVec2, nm32f* pDstVec, 
 \par
 \xmlonly
 	<testperf>
-		 <param values=" im1 im2 "> pSrcVec1 </param>
-		 <param values=" im2 im1 "> pSrcVec2 </param>
-		 <param values=" im3 "> pSrcVecAdd </param>
-		 <param values=" im4 "> pDstVec </param>
-		 <param values=" 2048*2 "> nSize </param>
+		 <param name=" pSrcVec1 "> im1 im2 </param>
+		 <param name=" pSrcVec2 "> im2 im1 </param>
+		 <param name=" pSrcVecAdd "> im3 </param>
+		 <param name=" pDstVec "> im4 </param>
+		 <param name=" nSize "> 2048*2 </param>
 	</testperf>
 	<testperf>
-		<param values=" im1 "> pSrcVec1 </param>
-		<param values=" im2 "> pSrcVec2 </param>
-		<param values=" im3 "> pSrcVecAdd </param>
-		<param values=" im4 "> pDstVec </param>
-		<param values=" 8 128 1024 2048 "> nSize </param>
+		<param name=" pSrcVec1 "> im1 </param>
+		<param name=" pSrcVec2 "> im2 </param>
+		<param name=" pSrcVecAdd "> im3 </param>
+		<param name=" pDstVec "> im4 </param>
+		<param name=" nSize "> 8 128 1024 2048 </param>
 	</testperf>
 \endxmlonly
 */
@@ -66,16 +66,16 @@ void nmppsMul_Add_64f(const nm64f* pSrcVec1, const nm64f* pSrcVec2, const nm64f*
 \par
 \xmlonly
     <testperf>
-         <param values=" im1 im2 "> pSrcVec1 </param>
-         <param values=" im1 im2 "> pSrcVec2 </param>
-         <param values=" im1 im3 "> pDstVec </param>
-         <param values=" 2048 "> nSize </param>
+         <param name=" pSrcVec1 "> im1 im2 </param>
+         <param name=" pSrcVec2 "> im1 im2 </param>
+         <param name=" pDstVec "> im1 im3 </param>
+         <param name=" nSize "> 2048 </param>
     </testperf>
     <testperf>
-         <param values=" im1 "> pSrcVec1 </param>
-         <param values=" im2 "> pSrcVec2 </param>
-         <param values=" im3 "> pDstVec </param>
-         <param values=" 8 128 1024 2048 "> nSize </param>
+         <param name=" pSrcVec1 "> im1 </param>
+         <param name=" pSrcVec2 "> im2 </param>
+         <param name=" pDstVec "> im3 </param>
+         <param name=" nSize "> 8 128 1024 2048 </param>
     </testperf>
 \endxmlonly
 */
