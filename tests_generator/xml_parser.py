@@ -1,9 +1,14 @@
 from xml.dom import minidom
+from xml.parsers import expat
 import collections
 
 
 def open_xml(xml_name):
-    return minidom.parse(xml_name)
+    try:
+        md = minidom.parse(xml_name)
+    except expat.ExpatError as err:
+        raise SyntaxError
+    return md
 
 
 def get_group_name(xml_doc):

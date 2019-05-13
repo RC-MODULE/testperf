@@ -321,10 +321,13 @@ def generate_perf_tests_from_all_xml(cmd_args):
     # except OSError:
     #     pass
     for file in xml_files:
-        xml_obj = xml_parser.open_xml(os.path.join(abs_path_to_xml, file))
         # print(file)
         try:
+            xml_obj = xml_parser.open_xml(os.path.join(abs_path_to_xml, file))
             perf_scripts = xml_parser.get_perf_scripts(xml_obj)
+        except SyntaxError as ex:
+            print('Error!\n' + file + ': a syntax error in the perf script')
+            continue
         except Exception as ex:
             print(file, ex)
             continue
