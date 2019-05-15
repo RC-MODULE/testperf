@@ -174,7 +174,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 if pss.param_types[pos] != '':
                     arg_type = pss.param_types[pos]
                 else:
-                   arg_type = func.args_types[func.args_names.index(pss.param_names[pos])]
+                    arg_type = func.args_types[func.args_names.index(pss.param_names[pos])]
 
                 index = str(num)
 
@@ -210,6 +210,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             else:
                 size123_str = ''
                 size_str = ''.join(['atoi(', print_f_args_str.split(', ')[-2], ')'])
+
             if pss.init is None:
                 called_str = '{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, called_str[:-2])
             elif pss.init is not None and pss.deinit is None:
@@ -218,7 +219,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 called_str = '{0}{2}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n{0}{3}\n'.format(spaces, called_str[:-2], pss.init, pss.deinit)
             print_f_str += '{:<13}{}'.format('%d | ', '%0.2f')
             print_f_str = ''.join(['"', print_f_str, r'\n"'])
-            printf_f_str = '{0}printf({1}, {2} t2 - t1, (float)(t2 - t1) / {3});\n'.format(spaces, print_f_str, print_f_args_str, size_str)
+            printf_f_str = '{0}sprintf(str, {1}, {2} t2 - t1, (float)(t2 - t1) / {3});\n'.format(spaces, print_f_str, print_f_args_str, size_str)
             lists.append(lists_str)
             cycles.append(cycles_str)
             without_cycles.append(without_cycle)
@@ -240,13 +241,18 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 file.writelines(lists)
                 file.writelines(names)
                 file.write('\n  clock_t t1, t2;\n')
+                file.write('\n  int min;\n')
+                file.write('\n  int max;\n')
+                file.write('\n  static char str[256];\n')
+                file.write('\n  static char min_str[256];\n')
+                file.write('\n  static char max_str[256];\n')
                 file.write('  printf("{2}**{1}{3}ingroup {0}{1}{1}");\n'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
-                # file.write(
-                #     '  printf("{3}ingroup {0}{1}{1}");\n'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
                 for i, cycle in enumerate(cycles):
+                    file.write('min = 1000000;\n')
+                    file.write('max = 0;\n')
                     s = '   |   '.join(perf_scripts[i].param_names)
                     file.write('{\n')
-                    file.write('  printf("Perfomance table {0}{1}{1}");\n'.format(str(i), r"\n"))
+                    file.write('  printf("{1}Perfomance table {0}{1}{1}");\n'.format(str(i), r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
                     file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].param_names) + 1), r"\n"))
                     file.write(cycle)
@@ -255,7 +261,23 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     file.write(size123[i])
                     file.write(called_funcs[i])
                     file.write(print_f[i])
+                    file.write('    printf(str);\n')
+                    file.write('    if(min > t2 -t1) {\n')
+                    file.write('      min = t2 - t1;\n')
+                    file.write('      strcpy(min_str, str);\n')
+                    file.write('    }\n')
+
+                    file.write('    if(max < t2 -t1) {\n')
+                    file.write('      max = t2 - t1;\n')
+                    file.write('      strcpy(max_str, str);\n')
+                    file.write('    }\n')
+
                     file.write(brackets[i])
+                    file.write('\n  printf("{0}The best configuration:{0}");\n'.format(r"\n"))
+                    file.write('\n  printf(min_str);\n')
+
+                    file.write('\n  printf("{0}The worst configuration:{0}");\n'.format(r"\n"))
+                    file.write('\n  printf(max_str);\n')
                     file.write('}\n')
                 file.write('\n')
                 file.write('  printf("*/{}");\n'.format(r"\n"))

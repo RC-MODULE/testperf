@@ -50,7 +50,7 @@ def run_tests(cmd_args):
                 info_about_log = 'There are perf tables in {}.md'.format(dir_name[5:])
             except ValueError:
                 #status = '[FAIL]'
-                print('The perf table for {} was not found!'.fiormat(dir_name[5:]))
+                print('The perf table for {} was not found!'.format(dir_name[5:]))
         os.chdir('..')
         print('The perf test for {} {}{}'.format(dir_name[5:], ' ' * (47 - len(dir_name[5:]) + 18), status))
         print(info_about_log)
