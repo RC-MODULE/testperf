@@ -111,6 +111,26 @@ def make_file_beginning(contents):
     return file_beginning[:num]
 
 
+def cast_args_for_init_func(pss, func):
+    # Создние новой строки здесь необходимо, потому что в дальнейшем понадобится изменять pss.init (элемент кортежа),
+    # который не может быть подвергнут изменению
+    init = '{0}'.format(pss.init)
+    types = {'nm8s*': 'char*', 'nm16s*': 'short*', 'nm16s15b*': 'short*',
+             'nm8u*': 'unsigned char*', 'nm16u*': 'unsigned short*'}
+    for arg in re.findall(r'[$]\w+', pss.init):
+        try:
+            nmpp_type_str = pss.param_types[pss.param_names.index(arg[1:])]
+            if nmpp_type_str == '':
+                nmpp_type_str = func.args_types[func.args_names.index(arg[1:])]
+        except ValueError:
+            nmpp_type_str = func.args_types[func.args_names.index(arg[1:])]
+        type_str = types.get(nmpp_type_str)
+        if type_str is None:
+            type_str = nmpp_type_str
+        init = init.replace(arg, '({0}){1}'.format(type_str, arg[1:]))
+    return init
+
+
 def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_name, file_beginning, point, path_to_build):
     init_funcs = []
     funcs_for_test = []
@@ -204,6 +224,8 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 num += 1
 
                 # init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
+
+            '''Проверяем, был ли указан в сценарии производительности (pss) тег size'''
             if pss.size is not None:
                 size123_str = '  {}int size123 = {};\n'.format(max_spaces, pss.size)
                 size_str = 'size123'
@@ -211,12 +233,18 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 size123_str = ''
                 size_str = ''.join(['atoi(', print_f_args_str.split(', ')[-2], ')'])
 
+            '''Проверяем, был ли указан в сценарии производительности (pss) тег init'''
             if pss.init is None:
                 called_str = '{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, called_str[:-2])
-            elif pss.init is not None and pss.deinit is None:
-                called_str = '{0}{2}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, called_str[:-2], pss.init)
+                '''Если тег init используется, то нужно проверить, есть ли в вызываемой функции инициализации параметры,
+                   требующие приведения типов. Перед такими параметрами в вызове функции будет стоять знак $'''
             else:
-                called_str = '{0}{2}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n{0}{3}\n'.format(spaces, called_str[:-2], pss.init, pss.deinit)
+                init  = cast_args_for_init_func(pss, func)
+                if pss.deinit is None:
+                    called_str = '{0}{2}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, called_str[:-2], init)
+                else:
+                    called_str = '{0}{2}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n{0}{3}\n'.format(spaces, called_str[:-2], init, pss.deinit)
+
             print_f_str += '{:<13}{}'.format('%d | ', '%0.2f')
             print_f_str = ''.join(['"', print_f_str, r'\n"'])
             printf_f_str = '{0}sprintf(str, {1}, {2} t2 - t1, (float)(t2 - t1) / {3});\n'.format(spaces, print_f_str, print_f_args_str, size_str)
@@ -273,10 +301,14 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     file.write('    }\n')
 
                     file.write(brackets[i])
-                    file.write('\n  printf("{0}The best configuration:{0}");\n'.format(r"\n"))
+                    file.write('\n  printf("{0}The best configuration:{0}{0}");\n'.format(r"\n"))
+                    file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
+                    file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].param_names) + 1), r"\n"))
                     file.write('\n  printf(min_str);\n')
 
-                    file.write('\n  printf("{0}The worst configuration:{0}");\n'.format(r"\n"))
+                    file.write('\n  printf("{0}The worst configuration:{0}{0}");\n'.format(r"\n"))
+                    file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
+                    file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].param_names) + 1), r"\n"))
                     file.write('\n  printf(max_str);\n')
                     file.write('}\n')
                 file.write('\n')

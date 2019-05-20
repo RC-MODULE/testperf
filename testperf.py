@@ -29,13 +29,13 @@ def run_tests(cmd_args):
     for dir_name in dirs_names:
         os.chdir(dir_name)
         status = '[OK]'
+        info_about_log = 'There is information about this perf test starting in {}.log'.format(dir_name[5:])
         with open('{}.log'.format(dir_name[5:]), 'w') as output_file:
             print('-----------------------------------------------------')
             print('Starting the perf test for {}...'.format(dir_name[5:]))
             return_code = subprocess.call(['make', 'run'], stdout=output_file, stderr=subprocess.STDOUT)
         if return_code != 0:
             status = '[FAIL]'
-            info_about_log = 'There is information about this perf test starting in {}.log'.format(dir_name[5:])
         else:
             with open('{}.log'.format(dir_name[5:]), 'r') as output_file:
                 out_after_make = output_file.read()
@@ -49,8 +49,8 @@ def run_tests(cmd_args):
 
                 info_about_log = 'There are perf tables in {}.md'.format(dir_name[5:])
             except ValueError:
-                #status = '[FAIL]'
-                print('The perf table for {} was not found!'.format(dir_name[5:]))
+                status = 'Warning! [OK]'
+                print('Warning! The perf table for {} was not found!'.format(dir_name[5:]))
         os.chdir('..')
         print('The perf test for {} {}{}'.format(dir_name[5:], ' ' * (47 - len(dir_name[5:]) + 18), status))
         print(info_about_log)
@@ -74,8 +74,11 @@ def gather_output_files(cmd_args):
             md_file = files_in_test[files_in_test.index(dir_name[5:] + '.md')]
             shutil.copy(os.path.join(dir_name, md_file), tbl_name)
         except ValueError as value_error:
-            log_file = files_in_test[files_in_test.index(dir_name[5:] + '.log')]
-            shutil.copy(os.path.join(dir_name, log_file), log_name)
+            try:
+                log_file = files_in_test[files_in_test.index(dir_name[5:] + '.log')]
+                shutil.copy(os.path.join(dir_name, log_file), log_name)
+            except ValueError:
+                print('{0} was not found!'.format(dir_name[5:] + '.log'))
     os.chdir('tables')
     for md_file in os.listdir():
         os.rename(md_file, md_file[:-3] + '.h')
