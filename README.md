@@ -50,15 +50,15 @@ void fft16(float* src, float*, FftSpec* fftspec);
 
 \xmlonly
 
-        \<testperf>
+        <testperf>
 	        <param name="src"> im1 im2 </param>
 	        <param name="dst"> im1 im2 </param>
-	         \<init> 
+	         <init> 
 	         FftSpec* spec;
 	         initFunc(&spec);	
-	         \</init>
-	        \<size> width * height	\</size>
-        \</testperf>
+	         </init>
+	        <size> width * height	</size>
+        </testperf>
 \endxmlonly
 
 ##### Тег \<size>
@@ -72,11 +72,11 @@ void foo(int* pSrc, int* pDst, int width, int height);
 
 \xmlonly
 
-        \<testperf>
+        <testperf>
 	        <param name="src"> im1 im2 </param> 
 	        <param name="dst"> im1 im2 </param>
-	        \<size> width * height	\</size>
-        \</testperf>
+	        <size> width * height	</size>
+        </testperf>
 \endxmlonly
 
 Тег \<size> может принимать и числовые значения (\<size> 256 \</size>).
