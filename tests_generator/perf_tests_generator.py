@@ -19,10 +19,12 @@ def parse_perf_scripts(perf_scripts):
         except Exception:
             size = None
         try:
+            init_pos = list(perf_script.keys()).index(('init', ''))
             init_func = perf_script.pop(('init', ''))
             init_func = init_func.strip()
+            init_func_pos = (init_func, init_pos)
         except Exception:
-            init_func = None
+            init_func_pos = None
         try:
             deinit_func = perf_script.pop(('deinit', ''))
             deinit_func = deinit_func.strip()
@@ -38,7 +40,7 @@ def parse_perf_scripts(perf_scripts):
             values_list.append(param_value)
             names_list.append(perf_param[0])
             types_list.append(perf_param[1])
-        prf_scs.append(PerfScripts(values_list, names_list, types_list, size, init_func, deinit_func))
+        prf_scs.append(PerfScripts(values_list, names_list, types_list, size, init_func_pos, deinit_func))
     return prf_scs
 
 
@@ -114,10 +116,12 @@ def make_file_beginning(contents):
 def cast_args_for_init_func(pss, func):
     # Создние новой строки здесь необходимо, потому что в дальнейшем понадобится изменять pss.init (элемент кортежа),
     # который не может быть подвергнут изменению
-    init = '{0}'.format(pss.init)
+    if pss.init is None:
+        return ''
+    init = '{0}'.format(pss.init[0])
     types = {'nm8s*': 'char*', 'nm16s*': 'short*', 'nm16s15b*': 'short*',
              'nm8u*': 'unsigned char*', 'nm16u*': 'unsigned short*'}
-    for arg in re.findall(r'[$]\w+', pss.init):
+    for arg in re.findall(r'[$]\w+', pss.init[0]):
         try:
             nmpp_type_str = pss.param_types[pss.param_names.index(arg[1:])]
             if nmpp_type_str == '':
@@ -188,6 +192,12 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             without_cycle = ''
             size123_str = ''
             spaces = '  '
+
+            '''Если pss.init[1], значит функция инициализации должна стоять перед всеми циклами'''
+            init = cast_args_for_init_func(pss, func)
+            if pss.init is not None and pss.init[1] == 0:
+                cycles_str += '{0}\n'.format(init)
+
             for pos, perf_param in enumerate(pss.param_values):
                 perf_param_names = perf_param.split(', ')
                 params_count = len(perf_param_names)
@@ -213,14 +223,25 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                    Вместо него создается переменная, которой присваивается значение из сценария производительность.
                    Эта переменная передается в качестве аргумента функции.'''
                 if params_count == 1:
-                    without_cycle += '{0}{1} {2} = ({1})({3});\n'.format(spaces, arg_type, pss.param_names[pos], perf_param)
+                    cycle_str = '{0}{1} {2} = ({1})({3});\n'.format(spaces, arg_type, pss.param_names[pos], perf_param)
                     print_f_args_str += 'name{0}[0], '.format(index)
                 elif params_count > 1:
                     lists_str += '  {2} list{0}[] = {1};\n'.format(index, ''.join(['{', perf_param, '}']), list_type)
-                    cycles_str += '{0}for(int i{1} = 0; i{1} < {2}; i{1}++) {3}'.format(spaces, index, str(params_count), '{\n')
-                    init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(spaces, ' '.join([arg_type, pss.param_names[pos]]), arg_type, index)
+                    init_arg_str = '  {0}{1} = ({2})list{3}[i{3}];\n'.format(spaces, ' '.join([arg_type, pss.param_names[pos]]), arg_type, index)
+                    cycle_str = '{0}for(int i{1} = 0; i{1} < {2}; i{1}++) {3}{4}'.format(spaces, index, str(params_count), '{\n', init_arg_str)
                     print_f_args_str += 'name{0}[i{0}], '.format(index)
                     spaces += '  '
+
+                '''Проверяем, был ли указан в сценарии производительности (pss) тег init'''
+                if pss.init is None:
+                    cycles_str += '{0}{1}'.format(cycle_str, init_args_str)
+                    '''Если тег init используется, то нужно проверить, есть ли в вызываемой функции инициализации параметры,
+                       требующие приведения типов. Перед такими параметрами в вызове функции будет стоять знак $'''
+                else:
+                    if pss.init[1] == num + 1:
+                        cycles_str += '{0}{1}{2}{3}\n'.format(cycle_str, init_args_str, spaces, init)
+                    else:
+                        cycles_str += '{0}{1}{2}\n'.format(cycle_str, init_args_str, spaces)
                 num += 1
 
                 # init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
@@ -233,26 +254,20 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 size123_str = ''
                 size_str = ''.join(['atoi(', print_f_args_str.split(', ')[-2], ')'])
 
-            '''Проверяем, был ли указан в сценарии производительности (pss) тег init'''
-            if pss.init is None:
-                called_str = '{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, called_str[:-2])
-                '''Если тег init используется, то нужно проверить, есть ли в вызываемой функции инициализации параметры,
-                   требующие приведения типов. Перед такими параметрами в вызове функции будет стоять знак $'''
+            '''Проверяем, был ли указан в сценарии производительности (pss) тег deinit'''
+            if pss.deinit is None:
+                called_str = '{0}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, called_str[:-2])
             else:
-                init  = cast_args_for_init_func(pss, func)
-                if pss.deinit is None:
-                    called_str = '{0}{2}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, called_str[:-2], init)
-                else:
-                    called_str = '{0}{2}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n{0}{3}\n'.format(spaces, called_str[:-2], init, pss.deinit)
+                called_str = '{0}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n{0}{2}\n'.format(spaces, called_str[:-2], pss.deinit)
 
             print_f_str += '{:<13}{}'.format('%d | ', '%0.2f')
             print_f_str = ''.join(['"', print_f_str, r'\n"'])
             printf_f_str = '{0}sprintf(str, {1}, {2} t2 - t1, (float)(t2 - t1) / {3});\n'.format(spaces, print_f_str, print_f_args_str, size_str)
             lists.append(lists_str)
             cycles.append(cycles_str)
-            without_cycles.append(without_cycle)
+            #without_cycles.append(without_cycle)
             called_funcs.append(called_str)
-            init_args.append(init_args_str)
+            #init_args.append(init_args_str)
             names.append(names_str)
             print_f.append(printf_f_str)
             size123.append(size123_str)
@@ -284,8 +299,8 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
                     file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].param_names) + 1), r"\n"))
                     file.write(cycle)
-                    file.write(init_args[i])
-                    file.write(without_cycles[i])
+                    #file.write(init_args[i])
+                    #file.write(without_cycles[i])
                     file.write(size123[i])
                     file.write(called_funcs[i])
                     file.write(print_f[i])
