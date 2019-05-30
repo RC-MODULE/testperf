@@ -6,7 +6,6 @@ import shutil
 from collections import namedtuple
 
 from tests_generator import xml_parser
-from tests_generator import logs_generator
 
 
 def parse_perf_scripts(perf_scripts):
@@ -159,7 +158,6 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             print('Warning:')
             print('{} args = {} mismatch with the testperf args = {}.'.format(func.name, func.args_names, perf_scripts[0].param_names))
             print('-----------------------------------------------------')
-            #continue
         else:
             funcs_for_test.append(func.name + '\n')
 
@@ -168,9 +166,9 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
 
         copy_build_for_board(path_to_build, test_dir_name)          # Копируем шаблон для будщего теста
         num = 0
-        lists = []    # for the writting
+        lists = []
         names = []
-        cycles = []  # for the writting
+        cycles = []
         called_funcs = []
         max_spaces = []
         print_f = []
@@ -338,15 +336,8 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
 
 
 def generate_perf_tests_from_all_xml(cmd_args):
-    #log_dir_name = 'logs_gen_{}'.format(cmd_args.point)
-    #tests_dir_name = 'perf_tests_{}'.format(cmd_args.point)
-    #tables_dir_name = 'perf_tables_{}'.format(cmd_args.point)
-
-    #abs_path_to_log_dir = os.path.join(os.path.abspath(cmd_args.path_to_log), log_dir_name)
     abs_path_to_build = os.path.abspath(cmd_args.path_to_build)
     abs_path_to_xml = os.path.abspath(cmd_args.path_to_xml)
-    #path_to_tests_dir = os.path.join(cmd_args.path_to_tests, tests_dir_name)
-    #path_to_tables_dir = os.path.join(cmd_args.path_to_tables, tables_dir_name)
 
     if not os.path.exists(abs_path_to_build):
         print('-----------------------------------------------------')
@@ -382,18 +373,11 @@ def generate_perf_tests_from_all_xml(cmd_args):
         print('-------------------------------------------------------')
         return
 
-    # try:
-    #     #os.mkdir(abs_path_to_log_dir)
-    #     #os.mkdir(path_to_tests_dir)
-    #     #os.mkdir(path_to_tables_dir)
-    # except OSError:
-    #     pass
     for file in xml_files:
-        # print(file)
         try:
             xml_obj = xml_parser.open_xml(os.path.join(abs_path_to_xml, file))
             perf_scripts = xml_parser.get_perf_scripts(xml_obj)
-        except SyntaxError as ex:
+        except SyntaxError:
             print('Error!\n' + file + ': a syntax error in the perf script')
             continue
         except Exception as ex:
@@ -404,16 +388,8 @@ def generate_perf_tests_from_all_xml(cmd_args):
         functions = parse_funcs_prototypes(funcs_prototypes)
         group_name = xml_parser.get_group_name(xml_obj)
         try:
-            init_funcs, funcs_for_test = generate_perf_tests_from_one_xml(functions,
-                                                                          perf_scripts,
-                                                                          group_name,
-                                                                          test_name,
-                                                                          file_beginning,
-                                                                          cmd_args.point,
-                                                                          abs_path_to_build)
+            generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_name,
+                                             file_beginning, cmd_args.point, abs_path_to_build)
         except Exception as err:
             print(err)
             continue
-        #funcs_without_test = get_funcs_without_test(funcs_for_test, path_to_tests_dir)
-        #funcs_without_table = logs_generator.get_funcs_without_perf_table(funcs_for_test, path_to_tables_dir)
-        #logs_generator.generate_log(path_to_log_dir, init_funcs, funcs_for_test, funcs_without_table)

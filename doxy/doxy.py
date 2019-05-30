@@ -19,20 +19,6 @@ def write_path_to_doxyfile(include_path):
         doxyfile.write('INPUT = {}'.format(include_path))
 
 
-# def find_include_files(include_path):
-#     files_and_dirs = os.path.listdir(include_path)
-#     dirs = []
-#     inc_files = []
-#     other_files = []
-#     for file_name in os.path.listdir(include_path):
-#         if '.h' or '.cpp' or '.c' in file_name:
-#             inc_files.append(file_name)
-#         elif os.isdir(os.path.join(include_path, file_name)):
-#             dirs.append(file_name)
-#         else:
-#             other_files.append(file_name)
-
-
 def make_xml(include_path):
     abs_inc_path = os.path.abspath(include_path)
     if not os.path.exists(abs_inc_path):
