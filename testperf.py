@@ -65,9 +65,14 @@ def gather_output_files(cmd_args):
     log_name = os.path.join(cmd_args.path_to_tables, 'failed_tests_logs')
     try:
         os.mkdir(tbl_name)
+    except FileExistsError:
+        shutil.rmtree(tbl_name)
+        os.mkdir(tbl_name)
+    try:
         os.mkdir(log_name)
-    except OSError:
-        pass
+    except FileExistsError:
+        shutil.rmtree(log_name)
+        os.mkdir(log_name)
     for dir_name in dirs_names:
         files_in_test = os.listdir(dir_name)
         try:

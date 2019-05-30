@@ -110,7 +110,7 @@ def get_contents_cppftest(path_to_build):
 def make_file_beginning(contents):
     file_beginning = ''.join(contents)
     num = file_beginning.find('return')
-    return file_beginning[:num]
+    return file_beginning[:num].rstrip()
 
 
 def cast_args_for_init_func(pss, func):
@@ -171,14 +171,12 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
         lists = []    # for the writting
         names = []
         cycles = []  # for the writting
-        without_cycles = []  # for the writting
         called_funcs = []
-        init_args = []
+        max_spaces = []
         print_f = []
         brackets = []
         size123 = []
         path_to_test = os.path.join(test_dir_name, test_name)
-        max_spaces = '  ' * len(func.args_names)
 
         # В этом цикле перебираеются все сценарии производительности, описанные для группы(group_name) функций
         for i_pss, pss in enumerate(perf_scripts):
@@ -189,14 +187,14 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             names_str = ''
             lists_str = ''
             cycles_str = ''  # for the writting
-            without_cycle = ''
-            size123_str = ''
-            spaces = '  '
+            spaces = '  '    # строка с пробелами нужна для форматирования теста
 
-            '''Если pss.init[1], значит функция инициализации должна стоять перед всеми циклами'''
+            '''Если pss.init[1] == 0, значит функция инициализации должна стоять перед всеми циклами'''
             init = cast_args_for_init_func(pss, func)
+            init_lst = init.split('\n')
             if pss.init is not None and pss.init[1] == 0:
-                cycles_str += '{0}\n'.format(init)
+                for s in init_lst:
+                    cycles_str += '  {0}\n'.format(s.strip())
 
             for pos, perf_param in enumerate(pss.param_values):
                 perf_param_names = perf_param.split(', ')
@@ -217,7 +215,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 params = [''.join(['"', param, '"']) for param in perf_param_names]
                 params_str = ', '.join(params)
                 print_f_str += '{:<13}'.format('%s |')
-                names_str += '  char* name{}[] = {};\n'.format(index, ''.join(['{', params_str, '}']))
+                names_str += '\n  char* name{}[] = {};'.format(index, ''.join(['{', params_str, '}']))
                 '''Проверка на то, сколько значений для аргумента функции было задано в сценарии производительности.
                    Если 1 параметр, то цикл не создается. (Если больше 1, то создается цикл.)
                    Вместо него создается переменная, которой присваивается значение из сценария производительность.
@@ -226,7 +224,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     cycle_str = '{0}{1} {2} = ({1})({3});\n'.format(spaces, arg_type, pss.param_names[pos], perf_param)
                     print_f_args_str += 'name{0}[0], '.format(index)
                 elif params_count > 1:
-                    lists_str += '  {2} list{0}[] = {1};\n'.format(index, ''.join(['{', perf_param, '}']), list_type)
+                    lists_str += '\n  {2} list{0}[] = {1};'.format(index, ''.join(['{', perf_param, '}']), list_type)
                     init_arg_str = '  {0}{1} = ({2})list{3}[i{3}];\n'.format(spaces, ' '.join([arg_type, pss.param_names[pos]]), arg_type, index)
                     cycle_str = '{0}for(int i{1} = 0; i{1} < {2}; i{1}++) {3}{4}'.format(spaces, index, str(params_count), '{\n', init_arg_str)
                     print_f_args_str += 'name{0}[i{0}], '.format(index)
@@ -238,17 +236,17 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     '''Если тег init используется, то нужно проверить, есть ли в вызываемой функции инициализации параметры,
                        требующие приведения типов. Перед такими параметрами в вызове функции будет стоять знак $'''
                 else:
+                    cycles_str += '{0}{1}{2}\n'.format(cycle_str, init_args_str, spaces)
                     if pss.init[1] == num + 1:
-                        cycles_str += '{0}{1}{2}{3}\n'.format(cycle_str, init_args_str, spaces, init)
-                    else:
-                        cycles_str += '{0}{1}{2}\n'.format(cycle_str, init_args_str, spaces)
+                        for s in init_lst:
+                            cycles_str += '{0}{1}\n'.format(spaces, s.strip())
                 num += 1
 
-                # init_args_str += '  {0}{1} = ({2})list{3}[i{3}];\n'.format(max_spaces, ' '.join([func.args_types[pos], func.args_names[pos]]), func.args_types[pos], index)
+            max_spaces.append(spaces)
 
             '''Проверяем, был ли указан в сценарии производительности (pss) тег size'''
             if pss.size is not None:
-                size123_str = '  {}int size123 = {};\n'.format(max_spaces, pss.size)
+                size123_str = '{}int size123 = {};'.format(spaces, pss.size)
                 size_str = 'size123'
             else:
                 size123_str = ''
@@ -265,9 +263,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             printf_f_str = '{0}sprintf(str, {1}, {2} t2 - t1, (float)(t2 - t1) / {3});\n'.format(spaces, print_f_str, print_f_args_str, size_str)
             lists.append(lists_str)
             cycles.append(cycles_str)
-            #without_cycles.append(without_cycle)
             called_funcs.append(called_str)
-            #init_args.append(init_args_str)
             names.append(names_str)
             print_f.append(printf_f_str)
             size123.append(size123_str)
@@ -283,37 +279,38 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 file.write(file_beginning)
                 file.writelines(lists)
                 file.writelines(names)
-                file.write('\n  clock_t t1, t2;\n')
-                file.write('\n  int min;\n')
-                file.write('\n  int max;\n')
-                file.write('\n  static char str[256];\n')
-                file.write('\n  static char min_str[256];\n')
-                file.write('\n  static char max_str[256];\n')
-                file.write('  printf("{2}**{1}{3}ingroup {0}{1}{1}");\n'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
+                file.write('\n  clock_t t1, t2;')
+                file.write('\n  int min;')
+                file.write('\n  int max;')
+                file.write('\n  static char str[256];')
+                file.write('\n  static char min_str[256];')
+                file.write('\n  static char max_str[256];')
+                file.write('\n  printf("{2}**{1}{3}ingroup {0}{1}{1}");'.format(group_name, r"\n", r"/", 3 * r"\tmp"[0]))
                 for i, cycle in enumerate(cycles):
-                    file.write('min = 1000000;\n')
-                    file.write('max = 0;\n')
+                    file.write('\n  min = 1000000;')
+                    file.write('\n  max = 0;')
                     s = '   |   '.join(perf_scripts[i].param_names)
-                    file.write('{\n')
+
+                    file.write('\n{\n')
+
                     file.write('  printf("{1}Perfomance table {0}{1}{1}");\n'.format(str(i), r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
-                    file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].param_names) + 1), r"\n"))
+                    file.write('  printf("{}{}");\n\n'.format('---|---' * (len(perf_scripts[i].param_names) + 1), r"\n"))
                     file.write(cycle)
-                    #file.write(init_args[i])
-                    #file.write(without_cycles[i])
                     file.write(size123[i])
                     file.write(called_funcs[i])
                     file.write(print_f[i])
-                    file.write('    printf(str);\n')
-                    file.write('    if(min > t2 -t1) {\n')
-                    file.write('      min = t2 - t1;\n')
-                    file.write('      strcpy(min_str, str);\n')
-                    file.write('    }\n')
+                    file.write('{0}printf(str);\n'.format(max_spaces[i]))
+                    file.write('{0}if(min > t2 -t1) {1}\n'.format(max_spaces[i], r"{"))
+                    file.write('{0}  min = t2 - t1;\n'.format(max_spaces[i]))
+                    file.write('{0}  strcpy(min_str, str);\n'.format(max_spaces[i]))
+                    file.write('{0}{1}\n'.format(max_spaces[i], r"}"))
 
-                    file.write('    if(max < t2 -t1) {\n')
-                    file.write('      max = t2 - t1;\n')
-                    file.write('      strcpy(max_str, str);\n')
-                    file.write('    }\n')
+                    file.write('{0}printf(str);\n'.format(max_spaces[i]))
+                    file.write('{0}if(max < t2 -t1) {1}\n'.format(max_spaces[i], r"{"))
+                    file.write('{0}  max = t2 - t1;\n'.format(max_spaces[i]))
+                    file.write('{0}  strcpy(max_str, str);\n'.format(max_spaces[i]))
+                    file.write('{0}{1}\n'.format(max_spaces[i], r"}"))
 
                     file.write(brackets[i])
                     file.write('\n  printf("{0}The best configuration:{0}{0}");\n'.format(r"\n"))
@@ -325,7 +322,9 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
                     file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].param_names) + 1), r"\n"))
                     file.write('\n  printf(max_str);\n')
+
                     file.write('}\n')
+
                 file.write('\n')
                 file.write('  printf("*/{}");\n'.format(r"\n"))
                 file.write('  printf("{0}{1}{1}");\n'.format(func.prototype, r"\n"))
