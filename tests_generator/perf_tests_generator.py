@@ -90,7 +90,7 @@ def copy_build_for_board(path_to_build, path_to_test):
         # shutil.rmtree(path_to_test)
         os.mkdir(path_to_test)
     for file in os.listdir(path_to_build):
-        shutil.copy(os.path.join(path_to_build, file), path_to_test)
+        shutil.copystat(os.path.join(path_to_build, file), path_to_test)
 
 
 def get_contents_cppftest(path_to_build):
@@ -228,13 +228,11 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     print_f_args_str += 'name{0}[i{0}], '.format(index)
                     spaces += '  '
 
+                cycles_str += '{0}{1}'.format(cycle_str, init_args_str)
                 '''Проверяем, был ли указан в сценарии производительности (pss) тег init'''
-                if pss.init is None:
-                    cycles_str += '{0}{1}'.format(cycle_str, init_args_str)
+                if pss.init is not None:
                     '''Если тег init используется, то нужно проверить, есть ли в вызываемой функции инициализации параметры,
                        требующие приведения типов. Перед такими параметрами в вызове функции будет стоять знак $'''
-                else:
-                    cycles_str += '{0}{1}{2}\n'.format(cycle_str, init_args_str, spaces)
                     if pss.init[1] == num + 1:
                         for s in init_lst:
                             cycles_str += '{0}{1}\n'.format(spaces, s.strip())
