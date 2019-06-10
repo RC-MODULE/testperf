@@ -90,6 +90,7 @@ def copy_build_for_board(path_to_build, path_to_test):
         # shutil.rmtree(path_to_test)
         os.mkdir(path_to_test)
     for file in os.listdir(path_to_build):
+        shutil.copy(os.path.join(path_to_build, file), path_to_test)
         shutil.copystat(os.path.join(path_to_build, file), path_to_test)
 
 
@@ -276,8 +277,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 file.writelines(lists)
                 file.writelines(names)
                 file.write('\n  clock_t t1, t2;')
-                file.write('\n  int min;')
-                file.write('\n  int max;')
+                file.write('\n  float min, max;')
                 file.write('\n  static char str[256];')
                 file.write('\n  static char min_str[256];')
                 file.write('\n  static char max_str[256];')
@@ -297,14 +297,14 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     file.write(called_funcs[i])
                     file.write(print_f[i])
                     file.write('{0}printf(str);\n'.format(max_spaces[i]))
-                    file.write('{0}if(min > t2 -t1) {1}\n'.format(max_spaces[i], r"{"))
-                    file.write('{0}  min = t2 - t1;\n'.format(max_spaces[i]))
+                    file.write('{0}if(min > (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", size_str))
+                    file.write('{0}  min = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], size_str))
                     file.write('{0}  strcpy(min_str, str);\n'.format(max_spaces[i]))
                     file.write('{0}{1}\n'.format(max_spaces[i], r"}"))
 
                     file.write('{0}printf(str);\n'.format(max_spaces[i]))
-                    file.write('{0}if(max < t2 -t1) {1}\n'.format(max_spaces[i], r"{"))
-                    file.write('{0}  max = t2 - t1;\n'.format(max_spaces[i]))
+                    file.write('{0}if(max < (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", size_str))
+                    file.write('{0}  max = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], size_str))
                     file.write('{0}  strcpy(max_str, str);\n'.format(max_spaces[i]))
                     file.write('{0}{1}\n'.format(max_spaces[i], r"}"))
 
