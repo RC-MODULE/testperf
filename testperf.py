@@ -66,13 +66,15 @@ def gather_output_files(cmd_args):
     try:
         os.mkdir(tbl_name)
     except FileExistsError:
-        shutil.rmtree(tbl_name)
-        os.mkdir(tbl_name)
+        # shutil.rmtree(tbl_name)
+        # os.mkdir(tbl_name)
+        pass
     try:
         os.mkdir(log_name)
     except FileExistsError:
-        shutil.rmtree(log_name)
-        os.mkdir(log_name)
+        # shutil.rmtree(log_name)
+        # os.mkdir(log_name)
+        pass
     for dir_name in dirs_names:
         files_in_test = os.listdir(dir_name)
         try:
@@ -85,8 +87,11 @@ def gather_output_files(cmd_args):
             except ValueError:
                 print('{0} was not found!'.format(dir_name[5:] + '.log'))
     os.chdir('tables')
-    for md_file in os.listdir():
-        os.rename(md_file, md_file[:-3] + '.h')
+    for md_file in [file for file in os.listdir() if '.md' in file]:
+        try:
+            os.rename(md_file, md_file[:-3] + '.h')
+        except FileExistsError:
+            os.replace(md_file, md_file[:-3] + '.h')
     os.chdir('..')
 
 

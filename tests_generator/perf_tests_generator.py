@@ -175,6 +175,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
         print_f = []
         brackets = []
         size123 = []
+        size_list = []
         path_to_test = os.path.join(test_dir_name, test_name)
 
         # В этом цикле перебираеются все сценарии производительности, описанные для группы(group_name) функций
@@ -194,7 +195,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             if pss.init is not None and pss.init[1] == 0:
                 for s in init_lst:
                     cycles_str += '  {0}\n'.format(s.strip())
-
+            # В этом цикле перебирается все параметры сценария производительности
             for pos, perf_param in enumerate(pss.param_values):
                 perf_param_names = perf_param.split(', ')
                 params_count = len(perf_param_names)
@@ -264,6 +265,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
             names.append(names_str)
             print_f.append(printf_f_str)
             size123.append(size123_str)
+            size_list.append(size_str)
             count_cycles = cycles_str.count('for(int ')
             brackets_str = ''
             for i in range(count_cycles):
@@ -297,14 +299,14 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                     file.write(called_funcs[i])
                     file.write(print_f[i])
                     file.write('{0}printf(str);\n'.format(max_spaces[i]))
-                    file.write('{0}if(min > (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", size_str))
-                    file.write('{0}  min = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], size_str))
+                    file.write('{0}if(min > (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", size_list[i]))
+                    file.write('{0}  min = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], size_list[i]))
                     file.write('{0}  strcpy(min_str, str);\n'.format(max_spaces[i]))
                     file.write('{0}{1}\n'.format(max_spaces[i], r"}"))
 
                     file.write('{0}printf(str);\n'.format(max_spaces[i]))
-                    file.write('{0}if(max < (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", size_str))
-                    file.write('{0}  max = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], size_str))
+                    file.write('{0}if(max < (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", size_list[i]))
+                    file.write('{0}  max = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], size_list[i]))
                     file.write('{0}  strcpy(max_str, str);\n'.format(max_spaces[i]))
                     file.write('{0}{1}\n'.format(max_spaces[i], r"}"))
 
