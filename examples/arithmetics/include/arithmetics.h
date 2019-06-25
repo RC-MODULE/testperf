@@ -1,3 +1,27 @@
+
+/**
+\defgroup nmppsFFT256Fwd_f nmppsFFT256Fwd
+\brief Функция инициализации структуры коэффициентов, необходимых для вычисления прямого БПФ-256
+\param  x [in] входной вектор комплексных чисел (на мнимая и действительная части имеют тип float)
+\retval X [out] выходной вектор комплексных чисел (на мнимая и действительная части имеют тип float)
+\param spec [in] структра, содержащая необходимые коэффициенты, для вычисления прямого БПФ определенного размера
+\par
+\xmlonly
+    <testperf>
+		 <init>
+		     NmppsFFTSpec_32fcr* spec;
+		     nmppsFFT256FwdInitAlloc_32fcr(&amp;spec);
+		 </init>
+         <param name=" x "> im1 im2 im3 im4 im5 </param>
+         <param name=" X "> im1 im2 im3 im4 im5 </param>
+		 <size> 256 </size>
+    </testperf>
+\endxmlonly
+*/
+//! \{
+void nmppsFFT256Fwd_32fcr(const nm32fcr* x, nm32fcr* X, NmppsFFTSpec_32fcr* spec);
+//! \}
+
 /**
 \defgroup nmppsAdd_f nmppsAdd
 \brief Сложение двух векторов.
