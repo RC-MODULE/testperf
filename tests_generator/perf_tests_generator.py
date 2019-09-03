@@ -278,7 +278,7 @@ def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_n
                 file.write(file_beginning)
                 file.writelines(lists)
                 file.writelines(names)
-                file.write('\n  clock_t t1, t2;')
+                file.write('\n  int t1, t2;')
                 file.write('\n  float min, max;')
                 file.write('\n  static char str[256];')
                 file.write('\n  static char min_str[256];')
