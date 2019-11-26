@@ -135,7 +135,7 @@ def cast_args_for_init_func(perf_script, func):
     return init
 
 
-def write_code_to_cpptest(file_beginning, lists, cycles, names, printf, perf_scripts, group_name, size123, called_funcs, max_spaces, size_list, brackets, func, path_to_test):
+def write_code_to_cpptest(file_beginning, lists, cycles, names, printf, perf_scripts, group_name, sizes_tags, called_funcs, max_spaces, sizes_sprintf, brackets, func, path_to_test):
     try:
         with open(path_to_test, 'w') as file:
             file.write(file_beginning)
@@ -158,18 +158,18 @@ def write_code_to_cpptest(file_beginning, lists, cycles, names, printf, perf_scr
                 file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
                 file.write('  printf("{}{}");\n\n'.format('---|---' * (len(perf_scripts[i].arguments_values) + 1), r"\n"))
                 file.write(cycle)
-                file.write(size123[i])
+                file.write(sizes_tags[i])
                 file.write(called_funcs[i])
                 file.write(printf[i])
                 file.write('{0}printf(str);\n'.format(max_spaces[i]))
-                file.write('{0}if(min > (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", size_list[i]))
-                file.write('{0}  min = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], size_list[i]))
+                file.write('{0}if(min > (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", sizes_sprintf[i]))
+                file.write('{0}  min = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], sizes_sprintf[i]))
                 file.write('{0}  strcpy(min_str, str);\n'.format(max_spaces[i]))
                 file.write('{0}{1}\n'.format(max_spaces[i], r"}"))
 
                 file.write('{0}printf(str);\n'.format(max_spaces[i]))
-                file.write('{0}if(max < (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", size_list[i]))
-                file.write('{0}  max = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], size_list[i]))
+                file.write('{0}if(max < (float)(t2 -t1) / {2}) {1}\n'.format(max_spaces[i], r"{", sizes_sprintf[i]))
+                file.write('{0}  max = (float)(t2 - t1) / {1};\n'.format(max_spaces[i], sizes_sprintf[i]))
                 file.write('{0}  strcpy(max_str, str);\n'.format(max_spaces[i]))
                 file.write('{0}{1}\n'.format(max_spaces[i], r"}"))
 
@@ -207,11 +207,9 @@ def get_type_from_func_prototype(func, argument_name):
     return func.args_types[argument_name_in_func_prototype]
 
 
-def create_cycle_str(argument_type, argument_name, argument_values, argument_values_count, spaces,
-                      index):
+def create_cycle_str(argument_type, argument_name, argument_values, argument_values_count, spaces, index):
     if argument_values_count == 1:
-        cycle_str = '{0}{1} {2} = ({1})({3});\n'.format(spaces, argument_type, argument_name,
-                                                        argument_values)
+        cycle_str = '{0}{1} {2} = ({1})({3});\n'.format(spaces, argument_type, argument_name, argument_values)
 
     elif argument_values_count > 1:
         init_arg_str = '  {0}{1} = ({2})list{3}[i{3}];\n'.format(spaces,
@@ -239,6 +237,47 @@ def create_lists_str(index, argument_values, argument_type):
     return lists_str
 
 
+def create_func_call_str(spaces, func, perf_script):
+    func_call_str = '{}({};\n'.format(func.name, ', '.join(func.args_names))
+    '''Проверяем, был ли указан в сценарии производительности (pss) тег deinit'''
+    if perf_script.deinit is None:
+        func_call_str = '{0}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, func_call_str[:-2])
+    else:
+        func_call_str = '{0}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n{0}{2}\n'.format(spaces,
+                                                                                             func_call_str[:-2],
+                                                                                             perf_script.deinit)
+    return func_call_str
+
+
+def create_size_tag_str(spaces, perf_script):
+    size_tag_str = ''
+    '''Если тег не задан, то считаем, что size передается как последний аргумент функции'''
+    if perf_script.size is not None:
+        size_tag_str += '{}int size_tag = {};'.format(spaces, perf_script.size)
+    return size_tag_str
+
+
+def create_size_sprintf_str(names_for_sprintf_str, perf_script):
+    size_sprintf_str = ''
+    '''Если тег не задан, то берем значение последнего аргумента функции'''
+    if perf_script.size is not None:
+        size_sprintf_str += 'size_tag'
+    else:
+        size_sprintf_str += ''.join(['atoi(', names_for_sprintf_str.split(', ')[-2], ')'])
+    return size_sprintf_str
+
+
+def create_sprintf_str(spaces, names_for_sprintf_str, size_sprintf_str):
+    # printf_str += '{:<13}{}'.format('%d | ', '%0.2f')
+    argument_for_sprintf = '{:<13}{:<13}{}'.format('%s |', '%d | ', '%0.2f')
+    argument_for_sprintf_in_quotes = ''.join(['"', argument_for_sprintf, r'\n"'])
+    sprintf_str = '{0}sprintf(str, {1}, {2} t2 - t1, (float)(t2 - t1) / {3});\n'.format(spaces,
+                                                                                        argument_for_sprintf_in_quotes,
+                                                                                        names_for_sprintf_str,
+                                                                                        size_sprintf_str)
+    return sprintf_str
+
+
 def generate_perf_test_for_one_func(func, perf_scripts, group_name, test_name, file_beginning, point, path_to_build):
     print('Creating the perf test for {}...'.format(func.name))
     test_dir_name = '_'.join(['perf', func.name])  # Имя дериктории с тестом
@@ -248,20 +287,19 @@ def generate_perf_test_for_one_func(func, perf_scripts, group_name, test_name, f
     lists = []
     names = []
     cycles = []
-    called_funcs = []
+    funcs_calls = []
     max_spaces = []
     printf = []
     brackets = []
-    size123 = []
-    size_list = []
+    sizes_tags = []
+    sizes_sprintf = []
     path_to_test = os.path.join(test_dir_name, test_name)
 
     ''' В этом цикле перебираеются все сценарии производительности, описанные для группы(group_name) функций'''
     for perf_script in perf_scripts:
-        called_str = '{}({};\n'.format(func.name, ', '.join(func.args_names))
         #init_args_str = ''
         printf_str = ''
-        printf_args_str = ''
+        names_for_sprintf_str = ''
         names_str = ''
         lists_str = ''
         cycles_str = ''  # for the writting
@@ -290,17 +328,17 @@ def generate_perf_test_for_one_func(func, perf_scripts, group_name, test_name, f
                Вместо него создается переменная, которой присваивается значение из сценария производительность.
                Эта переменная передается в качестве аргумента функции.'''
             argument_values_count = len(argument_values_list)
+            cycles_str += create_cycle_str(argument_type, argument_name, argument_values,
+                                           argument_values_count, spaces, index)
             if argument_values_count == 1:
-                printf_args_str += 'name{0}[0], '.format(index)
+                names_for_sprintf_str += 'name{0}[0], '.format(index)
             elif argument_values_count > 1:
                 lists_str = create_lists_str(index, argument_values, argument_type)
-                printf_args_str += 'name{0}[i{0}], '.format(index)
+                names_for_sprintf_str += 'name{0}[i{0}], '.format(index)
                 spaces += '  '
             else:
                 print("Error: {} hasn't values in this perf script!".format(argument_name))
             #cycles_str += '{0}{1}'.format(cycle_str, init_args_str)
-            cycles_str += create_cycle_str(argument_type, argument_name, argument_values,
-                                           argument_values_count, spaces, index)
             '''Проверяем, был ли указан в сценарии производительности (pss) тег init'''
             if perf_script.init is not None:
                 '''Если тег init используется, то нужно проверить, есть ли в вызываемой функции инициализации параметры,
@@ -312,40 +350,26 @@ def generate_perf_test_for_one_func(func, perf_scripts, group_name, test_name, f
 
         max_spaces.append(spaces)
 
-        '''Проверяем, был ли указан в сценарии производительности (pss) тег size'''
-        if perf_script.size is not None:
-            size123_str = '{}int size123 = {};'.format(spaces, perf_script.size)
-            size_str = 'size123'
-        else:
-            size123_str = ''
-            size_str = ''.join(['atoi(', printf_args_str.split(', ')[-2], ')'])
+        size_tag_str = create_size_tag_str(spaces, perf_script)
+        size_sprintf_str = create_size_sprintf_str(names_for_sprintf_str, perf_script)
 
-        '''Проверяем, был ли указан в сценарии производительности (pss) тег deinit'''
-        if perf_script.deinit is None:
-            called_str = '{0}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, called_str[:-2])
-        else:
-            called_str = '{0}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n{0}{2}\n'.format(spaces, called_str[:-2],
-                                                                                              perf_script.deinit)
+        func_call_str = create_func_call_str(spaces, func, perf_script)
+        sprintf_str = create_sprintf_str(spaces, names_for_sprintf_str, size_sprintf_str)
 
-        printf_str += '{:<13}'.format('%s |')
-        printf_str += '{:<13}{}'.format('%d | ', '%0.2f')
-        printf_str = ''.join(['"', printf_str, r'\n"'])
-        sprintf_str = '{0}sprintf(str, {1}, {2} t2 - t1, (float)(t2 - t1) / {3});\n'.format(spaces, printf_str,
-                                                                                             printf_args_str, size_str)
         lists.append(lists_str)
         cycles.append(cycles_str)
-        called_funcs.append(called_str)
+        funcs_calls.append(func_call_str)
         names.append(names_str)
         printf.append(sprintf_str)
-        size123.append(size123_str)
-        size_list.append(size_str)
+        sizes_tags.append(size_tag_str)
+        sizes_sprintf.append(size_sprintf_str)
         count_cycles = cycles_str.count('for(int ')
         brackets_str = ''
         for i in range(count_cycles):
             spaces = spaces.replace('  ', '', 1)
             brackets_str += spaces + '}\n'
         brackets.append(brackets_str)
-    write_code_to_cpptest(file_beginning, lists, cycles, names, printf, perf_scripts, group_name, size123, called_funcs, max_spaces, size_list, brackets, func, path_to_test)
+    write_code_to_cpptest(file_beginning, lists, cycles, names, printf, perf_scripts, group_name, sizes_tags, funcs_calls, max_spaces, sizes_sprintf, brackets, func, path_to_test)
 
 
 def generate_perf_tests_from_one_xml(functions, perf_scripts, group_name, test_name, file_beginning, point, path_to_build):
