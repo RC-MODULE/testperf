@@ -20,13 +20,13 @@ def get_perf_scripts(xml_doc):
     #  Функция ищет в переданном ей xml-файле тег testperf.
     #  В этом теге заключена информации сценария производительности, которую и достает данная функция.
     #  Функция принимает на в качестве параметра открытый xml-файл.
-    test_perf_tag = xml_doc.getElementsByTagName('testperf')
+    testperf_tag = xml_doc.getElementsByTagName('testperf')
 
-    if not test_perf_tag:
+    if not testperf_tag:
         raise Exception("hasn't a testperf script")
-    perf_scripts_list = [collections.OrderedDict() for i in enumerate(test_perf_tag)]
+    perf_scripts_list = [collections.OrderedDict() for i in enumerate(testperf_tag)]
 
-    for map_num, perf_script in enumerate(test_perf_tag):
+    for map_num, perf_script in enumerate(testperf_tag):
         for node in perf_script.childNodes:
             if node.nodeType == node.ELEMENT_NODE:
                 param_type = node.getAttribute('type')
