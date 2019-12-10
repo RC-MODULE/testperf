@@ -5,11 +5,14 @@ import shutil
 # cpptest = perftest
 
 
-class CpptestBuildTemplate:
+class BuildTemplateGenerator:
     def __init__(self, path_to_build_template):
         self.__path_to_build_template = path_to_build_template
         self.__cpptest_template_content = list()
         self.__cpptest_template_name = ''
+
+    def get_cpptest_template_name(self):
+        return self.__cpptest_template_name
 
     def copy(self, path_to_cpptest):
         # Функция копирует шаблон (Makefile, config.cfg, main.cpp) для сборки будущего теста в папку perf_<имя функции>.
@@ -22,10 +25,11 @@ class CpptestBuildTemplate:
             shutil.copystat(os.path.join(self.__path_to_build_template, file), path_to_cpptest)
 
     def fetch_content_cpptest_template(self):
-        build_dir_files = [f for f in os.listdir(self.__path_to_build_template) if f[-4:] == '.cpp' or f[-2:] == '.c']
-        if not build_dir_files:
+        build_dir_files_names = [file_name for file_name in os.listdir(self.__path_to_build_template)
+                                               if file_name[-4:] == '.cpp' or file_name[-2:] == '.c']
+        if not build_dir_files_names:
             raise FileNotFoundError
-        for file_name in build_dir_files:
+        for file_name in build_dir_files_names:
             with open(os.path.join(self.__path_to_build_template, file_name), 'r') as r_file:
                 cpptest_template_content = r_file.readlines()
                 for line in cpptest_template_content:
@@ -34,7 +38,8 @@ class CpptestBuildTemplate:
                         self.__cpptest_template_content = cpptest_template_content
         raise ValueError
 
-    def make_cpptest_beginning(self):
+    def generate_cpptest_beginning(self):
+        self.fetch_content_cpptest_template()
         cpptest_beginning = ''.join(self.__cpptest_template_content)
         return_pos = cpptest_beginning.find('return')
         return cpptest_beginning[:return_pos].rstrip()

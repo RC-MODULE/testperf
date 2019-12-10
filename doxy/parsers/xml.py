@@ -12,14 +12,14 @@ class DoxyXmlParser:
 
         group_name_tag = self.__opened_doxy_xml.getElementsByTagName('compoundname')
         self.__compoundname_tag = group_name_tag[0].firstChild.data
-        self.__testperf_tag = self.__opened_doxy_xml.getElementsByTagName('testperf')
-        self.__memberdef_tag = self.__opened_doxy_xml.getElementsByTagName('memberdef')
+        self.__testperf_tags = self.__opened_doxy_xml.getElementsByTagName('testperf')
+        self.__memberdef_tags = self.__opened_doxy_xml.getElementsByTagName('memberdef')
 
     def get_compoundname_tag(self):
         return self.__compoundname_tag
 
-    def get_memberdef_tag(self):
-        return self.__memberdef_tag
+    def get_memberdef_tags(self):
+        return self.__memberdef_tags
 
-    def get_testperf_tag(self):
-        return self.__testperf_tag
+    def get_testperf_tags(self):
+        return self.__testperf_tags

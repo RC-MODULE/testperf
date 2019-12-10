@@ -3,20 +3,30 @@ from collections import namedtuple
 import re
 
 
-class DoxyMemberdefTagParser:
+class MemberdefTagParser:
     def __init__(self, memberdef_tag):
         self.__memberdef_tag = memberdef_tag
         self.__function = namedtuple('Function', ['name',
+                                                  'prototype',
                                                   'arguments_names',
                                                   'arguments_types',
-                                                  'prototype'])
+                                                  'point_type'
+                                                  ])
 
     def parse_memberdef_tag(self):
         self.__parse_prototype_and_name()
         self.__parse_arguments_types_and_names()
+        self.__identify_point_type()
 
     def get_function(self):
         return self.__function
+
+    def __identify_point_type(self):
+        for arg_type in self.__function.arguments_types:
+            if arg_type.find('f') != -1 or arg_type.find('double') != -1:
+                self.__function.point_type = 'floating'
+                return
+        self.__function.point_type = 'fixed'
 
     def __parse_prototype(self):
         return_type_and_name_func = self.__memberdef_tag.childNodes[3].firstChild.data

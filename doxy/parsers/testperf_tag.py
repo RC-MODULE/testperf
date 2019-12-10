@@ -2,7 +2,7 @@
 from collections import namedtuple
 
 
-class DoxyTestperfTagParser:
+class TestperfTagParser:
     def __init__(self, testperf_tag):
         if testperf_tag:
             self.__testperf_tag = testperf_tag
@@ -17,6 +17,7 @@ class DoxyTestperfTagParser:
             raise Exception("hasn't a testperf script")
 
     def parse_testperf_tag(self):
+        self.parse_arguments_types()
         self.parse_arguments_names_and_values()
         self.parse_initialization_func()
         self.parse_deinitialization_func()
