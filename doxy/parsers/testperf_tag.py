@@ -12,7 +12,12 @@ class TestperfTagParser:
                                                             'size',
                                                             'initialization_func',
                                                             'deinitialization_func'])
-
+            self.__perf_script.arguments_values = []
+            self.__perf_script.arguments_names = []
+            self.__perf_script.arguments_types = []
+            self.__perf_script.size = ''
+            self.__perf_script.initialization_func = ()
+            self.__perf_script.deinitialization_func = ()
         else:
             raise Exception("hasn't a testperf script")
 
@@ -60,7 +65,8 @@ class TestperfTagParser:
         for node_number, node in enumerate(self.__testperf_tag.childNodes):
             if node.nodeType == node.ELEMENT_NODE:
                 if node.tagName == tag_name:
-                    return tuple(node.firstChild.data.strip(), int(node_number / 2))
+                    data_from_tag_and_pos = (node.firstChild.data.strip(), int(node_number / 2))
+                    return data_from_tag_and_pos
         return None
 
     def parse_size(self):
@@ -71,7 +77,7 @@ class TestperfTagParser:
             self.__perf_script.size = None
 
     def parse_initialization_func(self):
-        self.__perf_script.size = self.__parse_single_tag('init')
+        self.__perf_script.initialization_func = self.__parse_single_tag('init')
 
     def parse_deinitialization_func(self):
-        self.__perf_script.size = self.__parse_single_tag('deinit')
+        self.__perf_script.deinitialization_func = self.__parse_single_tag('deinit')
