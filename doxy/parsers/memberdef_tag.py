@@ -12,9 +12,15 @@ class MemberdefTagParser:
                                                   'arguments_types',
                                                   'point_type'
                                                   ])
+        self.__function.name = ''
+        self.__function.prototype = ''
+        self.__function.arguments_names = []
+        self.__function.arguments_types = []
+        self.__function.point_type = ''
 
     def parse_memberdef_tag(self):
-        self.parse_prototype_and_name()
+        self.parse_name()
+        self.parse_prototype()
         self.parse_arguments_types_and_names()
         self.identify_point_type()
 
@@ -31,21 +37,12 @@ class MemberdefTagParser:
     def parse_prototype(self):
         return_type_and_name_func = self.__memberdef_tag.childNodes[3].firstChild.data
         arguments_func = self.__memberdef_tag.childNodes[5].firstChild.data
-        self.__function.prototype = '{}{}'.format(return_type_and_name_func, arguments_func)
+        self.__function.prototype = '{}{};'.format(return_type_and_name_func, arguments_func)
 
     def parse_name(self):
         return_type_and_name_func = self.__memberdef_tag.childNodes[3].firstChild.data
         name_func = return_type_and_name_func.split(' ')[1]
         self.__function.name = name_func.strip()
-
-    def parse_prototype_and_name(self):
-        # parse_name
-        return_type_and_name_func = self.__memberdef_tag.childNodes[3].firstChild.data
-        name_func = return_type_and_name_func.split(' ')[1]
-        self.__function.name = name_func.strip()
-        # parse_prototype
-        arguments_func = self.__memberdef_tag.childNodes[5].firstChild.data
-        self.__function.prototype = '{}{}'.format(return_type_and_name_func, arguments_func)
 
     def parse_arguments_types_and_names(self):
         arguments_func = self.__memberdef_tag.childNodes[5].firstChild.data

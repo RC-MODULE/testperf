@@ -7,11 +7,13 @@ from generators.code import CpptestCodeGenerator
 
 
 class CpptestsGenerator:
-    def __init__(self, path_to_build_template, path_to_doxy_xml):
+    def __init__(self, path_to_build_template, path_to_doxy_xml, point_type):
         self.__abspath_to_build = os.path.abspath(path_to_build_template)
         self.__abspath_to_doxy_xml = os.path.abspath(path_to_doxy_xml)
         self.__path_to_build_template = path_to_build_template
+        self.__point_type = point_type
         self.__build_template_gen = BuildTemplateGenerator(path_to_build_template)
+
         try:
             self.__cpptest_beginning = self.__build_template_gen.generate_cpptest_beginning()
         except FileNotFoundError:
@@ -50,7 +52,6 @@ class CpptestsGenerator:
         for doxy_xml_name in doxy_xml_names:
             try:
                 doxy_xml_parser = DoxyXmlParser(os.path.join(self.__abspath_to_doxy_xml, doxy_xml_name))
-                #perf_scripts = xml_parser.get_perf_scripts(xml_obj)
             except SyntaxError:
                 print('Error!\n' + doxy_xml_name + ': a syntax error in the perf script')
                 continue
@@ -80,15 +81,15 @@ class CpptestsGenerator:
                 print(err)
                 continue
 
-    def generate_cpptests_from_one_doxy_xml(self, perf_scripts, functions, compoundname, point_type):
+    def generate_cpptests_from_one_doxy_xml(self, functions, perf_scripts, compoundname):
         # В этом цикле перебируется все функции, найденные в одном
         # doxy xml-файле (в одном файле функции, относящиеся к одной группе group_name)'''
         for func in functions:
             # Проверяем для какой точки (плавающей или фиксированной) попалась функция и сопостовляем с ключом -p
-            if point_type == 'fixed':
+            if self.__point_type == 'fixed':
                 if func.point_type == 'floating':
                     continue
-            if point_type == 'floating':
+            if self.__point_type == 'floating':
                 if func.point_type == 'fixed':
                     continue
 
@@ -130,14 +131,14 @@ class CpptestsGenerator:
                 for i, cycle in enumerate(cpptest_code.cycles):
                     file.write('\n  min = 1000000;')
                     file.write('\n  max = 0;')
-                    s = '   |   '.join(perf_scripts[i].arguments_values)
+                    s = '   |   '.join(perf_scripts[i].arguments_names)
 
                     file.write('\n{\n')
 
                     file.write('  printf("{1}Perfomance table {0}{1}{1}");\n'.format(str(i), r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
                     file.write(
-                        '  printf("{}{}");\n\n'.format('---|---' * (len(perf_scripts[i].arguments_values) + 1), r"\n"))
+                        '  printf("{}{}");\n\n'.format('---|---' * (len(perf_scripts[i].arguments_names) + 1), r"\n"))
                     file.write(cycle)
                     file.write(cpptest_code.sizes_tags[i])
                     file.write(cpptest_code.funcs_calls[i])
@@ -158,13 +159,13 @@ class CpptestsGenerator:
                     file.write('\n  printf("{0}The best configuration:{0}{0}");\n'.format(r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
                     file.write(
-                        '  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].arguments_values) + 1), r"\n"))
+                        '  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].arguments_names) + 1), r"\n"))
                     file.write('\n  printf(min_str);\n')
 
                     file.write('\n  printf("{0}The worst configuration:{0}{0}");\n'.format(r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
                     file.write(
-                        '  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].arguments_values) + 1), r"\n"))
+                        '  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].arguments_names) + 1), r"\n"))
                     file.write('\n  printf(max_str);\n')
 
                     file.write('}\n')

@@ -6,7 +6,7 @@ class TestperfTagParser:
     def __init__(self, testperf_tag):
         if testperf_tag:
             self.__testperf_tag = testperf_tag
-            self.__perf_script = namedtuple('PerfScripts', ['arguments_values',
+            self.__perf_script = namedtuple('PerfScript', ['arguments_values',
                                                             'arguments_names',
                                                             'arguments_types',
                                                             'size',

@@ -1,3 +1,4 @@
+
 import re
 from collections import namedtuple
 
@@ -9,16 +10,21 @@ class CpptestCodeGenerator:
         self.__cpptest_code = namedtuple('CpptestCode', ['lists', 'names', 'cycles',
                                                          'funcs_calls', 'max_spaces',
                                                          'printf', 'brackets', 'sizes_tags', 'sizes_sprintf'])
+
+        self.__cpptest_code.lists = []
+        self.__cpptest_code.names = []
+        self.__cpptest_code.cycles = []
+        self.__cpptest_code.funcs_calls = []
+        self.__cpptest_code.max_spaces = []
+        self.__cpptest_code.printf = []
+        self.__cpptest_code.brackets = []
+        self.__cpptest_code.sizes_tags = []
+        self.__cpptest_code.sizes_sprintf = []
+
         self.__vars_num_in_cpptest = 0
 
     def generate_cpptest_code(self):
         print('Creating the perf test for {}...'.format(self.__function.name))
-        #test_dir_name = '_'.join(['perf', func.name])  # Имя дериктории с тестом
-
-        #copy_build_for_board(path_to_build, test_dir_name)  # Копируем шаблон для будщего теста
-
-        #path_to_test = os.path.join(test_dir_name, test_name)
-
         ''' В этом цикле перебираеются все сценарии производительности, описанные для группы(group_name) функций'''
         for perf_script in self.__perf_scripts:
             printf_str = ''
@@ -32,7 +38,7 @@ class CpptestCodeGenerator:
                инициализации должна стоять перед всеми циклами'''
             init = self.cast_args_for_init_func(perf_script)
             init_lst = init.split('\n')
-            if perf_script.init is not None and perf_script.init[1] == 0:
+            if perf_script.initialization_func is not None and perf_script.initialization_func[1] == 0:
                 for s in init_lst:
                     cycles_str += '  {0}\n'.format(s.strip())
             ''' В этом цикле перебирается все параметры сценария производительности'''
@@ -57,16 +63,16 @@ class CpptestCodeGenerator:
                 if argument_values_count == 1:
                     names_for_sprintf_str += 'name{0}[0], '.format(index)
                 elif argument_values_count > 1:
-                    lists_str = self.create_lists_str(index, argument_values, argument_type)
+                    lists_str += self.create_lists_str(index, argument_values, argument_type)
                     names_for_sprintf_str += 'name{0}[i{0}], '.format(index)
                     spaces += '  '
                 else:
                     print("Error: {} hasn't values in this perf script!".format(argument_name))
                 '''Проверяем, был ли указан в сценарии производительности (perf_script) тег init'''
-                if perf_script.init is not None:
+                if perf_script.initialization_func is not None:
                     '''Если тег init используется, то нужно проверить, есть ли в вызываемой функции инициализации параметры,
                        требующие приведения типов. Перед такими параметрами в вызове функции будет стоять знак $'''
-                    if perf_script.init[1] == self.__vars_num_in_cpptest + 1:
+                    if perf_script.initialization_func[1] == self.__vars_num_in_cpptest + 1:
                         for s in init_lst:
                             cycles_str += '{0}{1}\n'.format(spaces, s.strip())
                 self.__vars_num_in_cpptest += 1
@@ -159,14 +165,14 @@ class CpptestCodeGenerator:
 
     @staticmethod
     def create_func_call_str(spaces, func, perf_script):
-        func_call_str = '{}({};\n'.format(func.name, ', '.join(func.args_names))
+        func_call_str = '{}({};\n'.format(func.name, ', '.join(func.arguments_names))
         '''Проверяем, был ли указан в сценарии производительности (pss) тег deinit'''
-        if perf_script.deinit is None:
+        if perf_script.deinitialization_func is None:
             func_call_str = '{0}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n'.format(spaces, func_call_str[:-2])
         else:
             func_call_str = '{0}\n{0}t1 = clock();\n{0}{1});\n{0}t2 = clock();\n{0}{2}\n'.format(spaces,
                                                                                                  func_call_str[:-2],
-                                                                                                 perf_script.deinit)
+                                                                                                 perf_script.deinitialization_func)
         return func_call_str
 
     @staticmethod

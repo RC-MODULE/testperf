@@ -26,7 +26,7 @@ class BuildTemplateGenerator:
 
     def fetch_content_cpptest_template(self):
         build_dir_files_names = [file_name for file_name in os.listdir(self.__path_to_build_template)
-                                               if file_name[-4:] == '.cpp' or file_name[-2:] == '.c']
+                                 if file_name[-4:] == '.cpp' or file_name[-2:] == '.c']
         if not build_dir_files_names:
             raise FileNotFoundError
         for file_name in build_dir_files_names:
@@ -36,6 +36,7 @@ class BuildTemplateGenerator:
                     if 'int main' in line:
                         self.__cpptest_template_name = file_name
                         self.__cpptest_template_content = cpptest_template_content
+                        return
         raise ValueError
 
     def generate_cpptest_beginning(self):

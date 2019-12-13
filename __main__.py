@@ -1,4 +1,4 @@
-import os
+
 import sys
 import argparse
 
@@ -18,9 +18,15 @@ subparsers = main_parser.add_subparsers()
 config_parser = subparsers.add_parser('config')
 config_parser.add_argument('-i', '--path_to_headers', required=True, help='Path to include dir')
 config_parser.add_argument('-b', '--path_to_build', required=True, help='Path to build dir')
-config_parser.add_argument('-p', '--point_type', default='float', help=('It can take a value = float',
-                                                                        '(perf tests for floating point)',
-                                                                        ' or fixed(perf tests for fixed)'))
+
+# Если ключ -p не задан, то тесты будут сгенерированы для всех типов точек по уполчанию
+# Если ключ -p задан, например, floating, то тесты сгенерятся только для функций,
+# принимающих хотя бы один аргумент с плавающей точкой, остальные функции будут пропущены
+config_parser.add_argument('-p', '--point_type', default='all', help=('It can take a value = all (all types)'
+                                                                      ' value = floating',
+                                                                      '(perf tests for floating point)',
+                                                                      ' or fixed(perf tests for fixed)'))
+
 config_parser.set_defaults(func=configure_cpptests)
 run_parser = subparsers.add_parser('run')
 run_parser.set_defaults(func=run_cpptests)

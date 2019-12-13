@@ -33,7 +33,8 @@ class TestTestperfTagParser(unittest.TestCase):
     def test_parse_initialization_func(self):
         self.__testperf_tag_parser.parse_initialization_func()
         perf_script = self.__testperf_tag_parser.get_perf_script()
-        self.assertEqual(perf_script.initialization_func, ('NmppsFFTSpec_32fcr* spec;\n                     nmppsFFT256FwdInitAlloc_32fcr(&spec);', 0))
+        self.assertEqual(perf_script.initialization_func, ('NmppsFFTSpec_32fcr* spec;\n                     '
+                                                           'nmppsFFT256FwdInitAlloc_32fcr(&spec);', 0))
 
     def test_parse_deinitialization_func(self):
         self.__testperf_tag_parser.parse_deinitialization_func()
@@ -48,7 +49,8 @@ class TestTestperfTagParser(unittest.TestCase):
         self.assertEqual(perf_script.arguments_values, ['im1, im2, im3, im4, im5',
                                                         'im1, im2, im3, im4, im5'])
         self.assertEqual(perf_script.arguments_types, ['', '', '', ''])
-        self.assertEqual(perf_script.initialization_func, ('NmppsFFTSpec_32fcr* spec;\n                     nmppsFFT256FwdInitAlloc_32fcr(&spec);', 0))
+        self.assertEqual(perf_script.initialization_func, ('NmppsFFTSpec_32fcr* spec;\n                     '
+                                                           'nmppsFFT256FwdInitAlloc_32fcr(&spec);', 0))
         self.assertEqual(perf_script.deinitialization_func, None)
 
 
