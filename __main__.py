@@ -1,8 +1,9 @@
 
+import os
 import sys
 import argparse
 
-from testperf_manager import *
+from managment import testperf_manager
 
 
 main_parser = argparse.ArgumentParser()
@@ -27,16 +28,16 @@ config_parser.add_argument('-p', '--point_type', default='all', help=('It can ta
                                                                       '(perf tests for floating point)',
                                                                       ' or fixed(perf tests for fixed)'))
 
-config_parser.set_defaults(func=configure_cpptests)
+config_parser.set_defaults(func=testperf_manager.configure_cpptests)
 run_parser = subparsers.add_parser('run')
-run_parser.set_defaults(func=run_cpptests)
+run_parser.set_defaults(func=testperf_manager.run_cpptests)
 
 del_parser = subparsers.add_parser('del')
-del_parser.set_defaults(func=delete_cpptests)
+del_parser.set_defaults(func=testperf_manager.delete_cpptests)
 
 out_parser = subparsers.add_parser('outdir')
 out_parser.add_argument('-t', '--path_to_tables', default='.', help='Path to a dir with perf tables')
-out_parser.set_defaults(func=gather_output_files)
+out_parser.set_defaults(func=testperf_manager.gather_output_files)
 
 all_parser = subparsers.add_parser('all')
 all_parser.add_argument('-i', '--path_to_headers', required=True, help='Path to include dir')
@@ -44,7 +45,7 @@ all_parser.add_argument('-b', '--path_to_build', required=True, help='Path to bu
 all_parser.add_argument('-p', '--point_type', default='float', help=('It can take a value = float',
                                                                      '(perf tests for floating point)',
                                                                      ' or fixed(perf tests for fixed)'))
-all_parser.set_defaults(func=configure_and_run_cpptests)
+all_parser.set_defaults(func=testperf_manager.configure_and_run_cpptests)
 
 parsed_cmd_keys = main_parser.parse_args(sys.argv[1:])
 parsed_cmd_keys.func(parsed_cmd_keys)
