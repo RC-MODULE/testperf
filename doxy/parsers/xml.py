@@ -23,3 +23,6 @@ class DoxyXmlParser:
 
     def get_testperf_tags(self):
         return self.__testperf_tags
+
+if __name__ == '__main__':
+    pass

@@ -81,3 +81,6 @@ class TestperfTagParser:
 
     def parse_deinitialization_func(self):
         self.__perf_script.deinitialization_func = self.__parse_single_tag('deinit')
+
+if __name__ == '__main__':
+    pass

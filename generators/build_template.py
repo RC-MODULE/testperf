@@ -44,3 +44,6 @@ class BuildTemplateGenerator:
         cpptest_beginning = ''.join(self.__cpptest_template_content)
         return_pos = cpptest_beginning.find('return')
         return cpptest_beginning[:return_pos].rstrip()
+
+if __name__ == '__main__':
+    pass

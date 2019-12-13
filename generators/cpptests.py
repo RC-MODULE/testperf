@@ -179,6 +179,5 @@ class CpptestsGenerator:
         except Exception as exc:
             print(path_to_cpptest, exc)
 
-
-
-
+if __name__ == '__main__':
+    pass

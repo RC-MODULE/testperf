@@ -25,8 +25,8 @@ def configure_cpptests(testperf_cmd_keys):
     cpptests_generator.generate_cpptests_from_some_doxy_xml()
 
 
-def run_cpptests(self):
-    dirs_names = self.determine_cpptests_dirs_names()
+def run_cpptests(testperf_cmd_keys):
+    dirs_names = determine_cpptests_dirs_names(testperf_cmd_keys)
     for dir_name in dirs_names:
         os.chdir(dir_name)
         status = '[OK]'
@@ -56,7 +56,7 @@ def run_cpptests(self):
         print('-----------------------------------------------------')
 
 
-def delete_cpptests():
+def delete_cpptests(testperf_cmd_keys):
     perf_test_list = [perf_test_name for perf_test_name in os.listdir() if 'perf_' in perf_test_name]
     if not perf_test_list:
         print("Perf tests weren't found!")
@@ -67,13 +67,13 @@ def delete_cpptests():
 
 
 def configure_and_run_cpptests(testperf_cmd_keys):
-    configure_cpptests()
-    run_cpptests()
+    configure_cpptests(testperf_cmd_keys)
+    run_cpptests(testperf_cmd_keys)
     # gather_output_files(cmd_args)
 
 
 def gather_output_files(testperf_cmd_keys):
-    dirs_names = determine_cpptests_dirs_names()
+    dirs_names = determine_cpptests_dirs_names(testperf_cmd_keys)
     if not dirs_names:
         return
     table_name = os.path.join(testperf_cmd_keys.path_to_tables, 'tables')
@@ -108,3 +108,7 @@ def gather_output_files(testperf_cmd_keys):
         except FileExistsError:
             os.replace(md_file, md_file[:-3] + '.h')
     os.chdir('..')
+    print("Results of tests running was gathered in {}".format(table_name))
+
+if __name__ == '__main__':
+    pass

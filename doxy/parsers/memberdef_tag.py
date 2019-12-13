@@ -62,3 +62,6 @@ class MemberdefTagParser:
                 else:
                     self.__function.arguments_types.append(arg.split(' ')[0])
                     self.__function.arguments_names.append(arg.split(' ')[1])
+
+if __name__ == '__main__':
+    pass

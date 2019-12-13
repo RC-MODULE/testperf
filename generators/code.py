@@ -27,7 +27,7 @@ class CpptestCodeGenerator:
         print('Creating the perf test for {}...'.format(self.__function.name))
         ''' В этом цикле перебираеются все сценарии производительности, описанные для группы(group_name) функций'''
         for perf_script in self.__perf_scripts:
-            printf_str = ''
+            argument_for_sprintf = ''
             names_for_sprintf_str = ''
             names_str = ''
             lists_str = ''
@@ -52,6 +52,7 @@ class CpptestCodeGenerator:
 
                 index = str(self.__vars_num_in_cpptest)
                 argument_values_list = argument_values.split(', ')
+                argument_for_sprintf += '{:<13}'.format('%s |')
                 names_str += self.create_names_str(index, argument_values_list)
                 '''Проверка на то, сколько значений для аргумента функции было задано в сценарии производительности.
                    Если 1 параметр, то цикл не создается. (Если больше 1, то создается цикл.)
@@ -83,7 +84,7 @@ class CpptestCodeGenerator:
             size_sprintf_str = self.create_size_sprintf_str(names_for_sprintf_str, perf_script)
 
             func_call_str = self.create_func_call_str(spaces, self.__function, perf_script)
-            sprintf_str = self.create_sprintf_str(spaces, names_for_sprintf_str, size_sprintf_str)
+            sprintf_str = self.create_sprintf_str(spaces, names_for_sprintf_str, size_sprintf_str, argument_for_sprintf)
 
             self.__cpptest_code.lists.append(lists_str)
             self.__cpptest_code.cycles.append(cycles_str)
@@ -194,9 +195,8 @@ class CpptestCodeGenerator:
         return size_sprintf_str
 
     @staticmethod
-    def create_sprintf_str(spaces, names_for_sprintf_str, size_sprintf_str):
-        # printf_str += '{:<13}{}'.format('%d | ', '%0.2f')
-        argument_for_sprintf = '{:<13}{:<13}{}'.format('%s |', '%d | ', '%0.2f')
+    def create_sprintf_str(spaces, names_for_sprintf_str, size_sprintf_str, argument_for_sprintf):
+        argument_for_sprintf += '{:<13}{}'.format('%d | ', '%0.2f')
         argument_for_sprintf_in_quotes = ''.join(['"', argument_for_sprintf, r'\n"'])
         sprintf_str = '{0}sprintf(str, {1}, {2} t2 - t1, (float)(t2 - t1) / {3});\n'.format(spaces,
                                                                                             argument_for_sprintf_in_quotes,
@@ -204,3 +204,5 @@ class CpptestCodeGenerator:
                                                                                             size_sprintf_str)
         return sprintf_str
 
+if __name__ == '__main__':
+    pass

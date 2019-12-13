@@ -38,3 +38,6 @@ def make_doxy_xml(path_to_headers):
             print(err)
             print('Doxygen start                         [FAIL]\n')
     os.chdir('..')
+
+if __name__ == '__main__':
+    pass
