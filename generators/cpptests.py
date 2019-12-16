@@ -101,7 +101,7 @@ class CpptestsGenerator:
                 print('-----------------------------------------------------')
                 print('Warning:')
                 print('{} args = {} mismatch with the testperf args = {}.'.format(func.name, func.arguments_names,
-                                                                                  perf_scripts[0].arguments_values))
+                                                                                  perf_scripts[0].arguments_names))
                 print('-----------------------------------------------------')
 
             cpptest_code_generator = CpptestCodeGenerator(func, perf_scripts)
