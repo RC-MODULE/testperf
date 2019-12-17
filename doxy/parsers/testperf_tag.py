@@ -4,22 +4,19 @@ from collections import namedtuple
 
 class TestperfTagParser:
     def __init__(self, testperf_tag):
-        if testperf_tag:
-            self.__testperf_tag = testperf_tag
-            self.__perf_script = namedtuple('PerfScript', ['arguments_values',
-                                                            'arguments_names',
-                                                            'arguments_types',
-                                                            'size',
-                                                            'initialization_func',
-                                                            'deinitialization_func'])
-            self.__perf_script.arguments_values = []
-            self.__perf_script.arguments_names = []
-            self.__perf_script.arguments_types = []
-            self.__perf_script.size = ''
-            self.__perf_script.initialization_func = ()
-            self.__perf_script.deinitialization_func = ()
-        else:
-            raise Exception("hasn't a testperf script")
+        self.__testperf_tag = testperf_tag
+        self.__perf_script = namedtuple('PerfScript', ['arguments_values',
+                                                        'arguments_names',
+                                                        'arguments_types',
+                                                        'size',
+                                                        'initialization_func',
+                                                        'deinitialization_func'])
+        self.__perf_script.arguments_values = []
+        self.__perf_script.arguments_names = []
+        self.__perf_script.arguments_types = []
+        self.__perf_script.size = ''
+        self.__perf_script.initialization_func = ()
+        self.__perf_script.deinitialization_func = ()
 
     def parse_testperf_tag(self):
         self.parse_arguments_types()

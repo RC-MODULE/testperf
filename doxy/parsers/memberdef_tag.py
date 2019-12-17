@@ -41,7 +41,7 @@ class MemberdefTagParser:
 
     def parse_name(self):
         return_type_and_name_func = self.__memberdef_tag.childNodes[3].firstChild.data
-        name_func = return_type_and_name_func.split(' ')[1]
+        name_func = return_type_and_name_func.split(' ')[-1]
         self.__function.name = name_func.strip()
 
     def parse_arguments_types_and_names(self):

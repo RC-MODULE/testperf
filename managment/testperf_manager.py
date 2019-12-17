@@ -17,7 +17,7 @@ def determine_cpptests_dirs_names(testperf_cmd_keys):
 def configure_cpptests(testperf_cmd_keys):
     try:
         doxy_manager.make_doxy_xml(testperf_cmd_keys.path_to_headers)
-    except FileExistsError as err:
+    except FileExistsError:
         return
     cpptests_generator = CpptestsGenerator(testperf_cmd_keys.path_to_build,
                                            testperf_cmd_keys.path_to_doxy_xml,
@@ -69,7 +69,7 @@ def delete_cpptests(testperf_cmd_keys):
 def configure_and_run_cpptests(testperf_cmd_keys):
     configure_cpptests(testperf_cmd_keys)
     run_cpptests(testperf_cmd_keys)
-    # gather_output_files(cmd_args)
+    run_cpptests(testperf_cmd_keys)
 
 
 def gather_output_files(testperf_cmd_keys):
@@ -81,21 +81,17 @@ def gather_output_files(testperf_cmd_keys):
     try:
         os.mkdir(table_name)
     except FileExistsError:
-        # shutil.rmtree(tbl_name)
-        # os.mkdir(tbl_name)
         pass
     try:
         os.mkdir(log_name)
     except FileExistsError:
-        # shutil.rmtree(log_name)
-        # os.mkdir(log_name)
         pass
     for dir_name in dirs_names:
         files_in_test = os.listdir(dir_name)
         try:
             md_file = files_in_test[files_in_test.index(dir_name[5:] + '.md')]
             shutil.copy(os.path.join(dir_name, md_file), table_name)
-        except ValueError as value_error:
+        except ValueError:
             try:
                 log_file = files_in_test[files_in_test.index(dir_name[5:] + '.log')]
                 shutil.copy(os.path.join(dir_name, log_file), log_name)
@@ -108,7 +104,7 @@ def gather_output_files(testperf_cmd_keys):
         except FileExistsError:
             os.replace(md_file, md_file[:-3] + '.h')
     os.chdir('..')
-    print("Results of tests running was gathered in {}".format(table_name))
+    print("Results of tests running were gathered in {}".format(table_name))
 
 if __name__ == '__main__':
     pass

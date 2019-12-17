@@ -32,11 +32,16 @@ def make_doxy_xml(path_to_headers):
     os.chdir('doxy')
     with open(os.devnull, 'wb') as devnull:
         try:
+            print('Doxygen start...')
+            print('Creating doxy xml...')
             subprocess.check_call('doxygen', stdout=devnull, stderr=subprocess.STDOUT)
-            print('Doxygen start...\n')
+            print('Creating doxy xml                          [OK]')
+            print('\n')
         except Exception as err:
             print(err)
-            print('Doxygen start                         [FAIL]\n')
+            print('Doxygen start                              [FAIL]')
+            print('Creating doxy xml                          [FAIL]')
+            print("Cpp tests wont't be created!")
     os.chdir('..')
 
 if __name__ == '__main__':

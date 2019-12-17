@@ -32,7 +32,6 @@ class CpptestsGenerator:
             return
 
     def generate_cpptests_from_some_doxy_xml(self):
-        abspath_to_build = os.path.abspath(self.__path_to_build_template)
         if not os.path.exists(self.__abspath_to_build):
             print('-----------------------------------------------------')
             print("Error! Path: '{}' doesn't exist".format(self.__abspath_to_build))
@@ -40,7 +39,6 @@ class CpptestsGenerator:
             print('-----------------------------------------------------')
             return
 
-        abspath_to_doxy_xml = os.path.abspath(self.__abspath_to_doxy_xml)
         doxy_xml_names = [file_name for file_name in os.listdir(self.__abspath_to_doxy_xml) if 'group__' in file_name]
         if not doxy_xml_names:
             print('-------------------------------------------------------')
@@ -49,37 +47,45 @@ class CpptestsGenerator:
             print('-------------------------------------------------------')
             return
 
+        doxy_xml_names_without_testperf_tag = []
         for doxy_xml_name in doxy_xml_names:
             try:
                 doxy_xml_parser = DoxyXmlParser(os.path.join(self.__abspath_to_doxy_xml, doxy_xml_name))
             except SyntaxError:
                 print('Error!\n' + doxy_xml_name + ': a syntax error in the perf script')
                 continue
-            except Exception as ex:
-                print(doxy_xml_name, ex)
-                continue
 
             testperf_tags = doxy_xml_parser.get_testperf_tags()
-            perf_scripts = []
-            for testperf_tag in testperf_tags:
-                testperf_tag_parser = TestperfTagParser(testperf_tag)
-                testperf_tag_parser.parse_testperf_tag()
-                perf_scripts.append(testperf_tag_parser.get_perf_script())
+            if testperf_tags:
+                perf_scripts = []
+                for testperf_tag in testperf_tags:
+                    testperf_tag_parser = TestperfTagParser(testperf_tag)
+                    testperf_tag_parser.parse_testperf_tag()
+                    perf_scripts.append(testperf_tag_parser.get_perf_script())
 
-            memberdef_tags = doxy_xml_parser.get_memberdef_tags()
-            functions = []
-            for memberdef_tag in memberdef_tags:
-                memberdef_tag_parser = MemberdefTagParser(memberdef_tag)
-                memberdef_tag_parser.parse_memberdef_tag()
-                functions.append(memberdef_tag_parser.get_function())
+                memberdef_tags = doxy_xml_parser.get_memberdef_tags()
+                functions = []
+                for memberdef_tag in memberdef_tags:
+                    memberdef_tag_parser = MemberdefTagParser(memberdef_tag)
+                    memberdef_tag_parser.parse_memberdef_tag()
+                    functions.append(memberdef_tag_parser.get_function())
 
-            compoundname = doxy_xml_parser.get_compoundname_tag()
+                compoundname = doxy_xml_parser.get_compoundname_tag()
 
-            try:
-                self.generate_cpptests_from_one_doxy_xml(functions, perf_scripts, compoundname)
-            except Exception as err:
-                print(err)
+                try:
+                    self.generate_cpptests_from_one_doxy_xml(functions, perf_scripts, compoundname)
+                except Exception as err:
+                    print(err)
+                    continue
+            else:
+                doxy_xml_names_without_testperf_tag.append(doxy_xml_name)
                 continue
+
+        if doxy_xml_names_without_testperf_tag:
+            print("These doxy xml doesn't have testperf tag.")
+            print("For functions from these doxy xml cpp tests were not created:")
+            for doxy_xml_name_without_testperf_tag in doxy_xml_names_without_testperf_tag:
+                print(doxy_xml_name_without_testperf_tag)
 
     def generate_cpptests_from_one_doxy_xml(self, functions, perf_scripts, compoundname):
         # В этом цикле перебируется все функции, найденные в одном
