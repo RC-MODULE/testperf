@@ -1,3 +1,9 @@
+#######################################################
+# Software designer: A.Brodyazhenko
+# Year: 2019
+# Content: Functions for a work with doxygen
+#######################################################
+
 import os
 import sys
 import subprocess

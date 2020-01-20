@@ -1,3 +1,8 @@
+#######################################################
+# Software designer: A.Brodyazhenko
+# Year: 2019
+# Content: Class for generating a cpp code for perf test
+#######################################################
 
 import re
 from collections import namedtuple

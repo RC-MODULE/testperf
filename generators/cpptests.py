@@ -1,3 +1,9 @@
+#######################################################
+# Software designer: A.Brodyazhenko
+# Year: 2019
+# Content: Class for generating perf tests
+#######################################################
+
 import os
 from doxy.parsers.testperf_tag import TestperfTagParser
 from doxy.parsers.memberdef_tag import MemberdefTagParser

@@ -1,3 +1,8 @@
+#######################################################
+# Software designer: A.Brodyazhenko
+# Year: 2019
+# Content: Class for a testperf tag parsing. This xml tag is unique.
+#######################################################
 
 from collections import namedtuple
 

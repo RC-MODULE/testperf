@@ -1,3 +1,8 @@
+#######################################################
+# Software designer: A.Brodyazhenko
+# Year: 2019
+# Content: Class for generating build template for perf test
+#######################################################
 
 import os
 import shutil

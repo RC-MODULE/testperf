@@ -1,3 +1,8 @@
+#######################################################
+# Software designer: A.Brodyazhenko
+# Year: 2019
+# Content: Functions for managing testperf
+#######################################################
 
 import os
 import shutil
