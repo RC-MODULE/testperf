@@ -1,0 +1,12 @@
+#Pycharm files
+.idea
+__pycache__
+
+#testperf files
+*.log
+examples/arithmetics/perf/doxy
+perf_nmppsAdd_32f
+perf_nmppsFFT256Fwd_32fcr
+perf_nmppsMul_Add_32f
+perf_nmppsMul_Add_64f
+perf_nmppsSub_32f

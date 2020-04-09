@@ -1,3 +1,9 @@
+#######################################################
+# Software designer: A.Brodyazhenko
+# Year: 2019
+# Content: Functions for a work with doxygen
+#######################################################
+
 import os
 import sys
 import subprocess
@@ -14,16 +20,16 @@ def copy_doxyfile():
         shutil.copy(doxyfile, 'doxy')
 
 
-def write_path_to_doxyfile(include_path):
+def write_path_to_doxyfile(path_to_headers):
     with open(os.path.join('doxy', 'Doxyfile'), 'a') as doxyfile:
-        doxyfile.write('INPUT = {}'.format(include_path))
+        doxyfile.write('INPUT = {}'.format(path_to_headers))
 
 
-def make_xml(include_path):
-    abs_inc_path = os.path.abspath(include_path)
+def make_doxy_xml(path_to_headers):
+    abs_inc_path = os.path.abspath(path_to_headers)
     if not os.path.exists(abs_inc_path):
         print('-----------------------------------------------------')
-        print("Error! Path: '{}' doesn't exist".format(include_path))
+        print("Error! Path: '{}' doesn't exist".format(path_to_headers))
         print("The perf tests won't be created!")
         print('-----------------------------------------------------')
         raise FileExistsError
@@ -32,9 +38,17 @@ def make_xml(include_path):
     os.chdir('doxy')
     with open(os.devnull, 'wb') as devnull:
         try:
+            print('Doxygen start...')
+            print('Creating doxy xml...')
             subprocess.check_call('doxygen', stdout=devnull, stderr=subprocess.STDOUT)
-            print('Starting doxygen...\n')
+            print('Creating doxy xml                          [OK]')
+            print('\n')
         except Exception as err:
             print(err)
-            print('Starting doxygen                         [FAIL]\n')
+            print('Doxygen start                              [FAIL]')
+            print('Creating doxy xml                          [FAIL]')
+            print("Cpp tests wont't be created!")
     os.chdir('..')
+
+if __name__ == '__main__':
+    pass

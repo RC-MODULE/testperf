@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.13">
+  <compounddef id="group__nmpps_f_f_t256_fwd__f" kind="group">
+    <compoundname>nmppsFFT256Fwd_f</compoundname>
+    <title>nmppsFFT256Fwd</title>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__nmpps_f_f_t256_fwd__f_1gaf69496a09c43d16884d94a62f5e90c09" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void nmppsFFT256Fwd_32fcr</definition>
+        <argsstring>(const nm32fcr *x, nm32fcr *X, NmppsFFTSpec_32fcr *spec)</argsstring>
+        <name>nmppsFFT256Fwd_32fcr</name>
+        <param>
+          <type>const nm32fcr *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>nm32fcr *</type>
+          <declname>X</declname>
+        </param>
+        <param>
+          <type>NmppsFFTSpec_32fcr *</type>
+          <declname>spec</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="D:/GIT/testperf/examples/arithmetics/include/arithmetics.h" line="22" column="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Функция инициализации структуры коэффициентов, необходимых для вычисления прямого БПФ-256. </para>    </briefdescription>
+    <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>[in] входной вектор комплексных чисел (мнимая и действительная части имеют тип float) </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>X</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>[out] выходной вектор комплексных чисел (мнимая и действительная части имеют тип float) </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>spec</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>[in] структра, содержащая необходимые коэффициенты, для вычисления прямого БПФ определенного размера </para></parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="par"><title></title><para> 
+    <testperf>
+                 <init>
+                     NmppsFFTSpec_32fcr* spec;
+                     nmppsFFT256FwdInitAlloc_32fcr(&amp;spec);
+                 </init>
+         <param name=" x "> im1 im2 im3 im4 im5 </param>
+         <param name=" X "> im1 im2 im3 im4 im5 </param>
+                 <size> 256 </size>
+    </testperf>
+ </para></simplesect>
+</para>    </detaileddescription>
+  </compounddef>
+</doxygen>
