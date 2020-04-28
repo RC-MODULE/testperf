@@ -166,7 +166,7 @@ class CpptestCodeGenerator:
     def create_names_str(index, argument_values_list):
         argument_values_in_quotes = ', '.join([''.join(['"', argument_value, '"']) for argument_value in argument_values_list])
         argument_values_in_brackets = ''.join(['{', argument_values_in_quotes, '}'])
-        names_str = '\n  char* name{}[] = {};'.format(index, argument_values_in_brackets)
+        names_str = '\n  const char* name{}[] = {};'.format(index, argument_values_in_brackets)
         return names_str
 
     @staticmethod

@@ -139,7 +139,7 @@ class CpptestsGenerator:
                 file.write('\n  static char min_str[256];')
                 file.write('\n  static char max_str[256];')
                 file.write(
-                    '\n  printf("{2}**{1}{3}ingroup {0}{1}{1}");'.format(compoundname, r"\n", r"/", 3 * r"\tmp"[0]))
+                    '\n  printf("{2}**\\n\\\\ingroup {0}{1}{1}");'.format(compoundname, r"\n", r"/", 3 * r"\tmp"[0]))
                 for i, cycle in enumerate(cpptest_code.cycles):
                     file.write('\n  min = 1000000;')
                     file.write('\n  max = 0;')
@@ -161,7 +161,7 @@ class CpptestsGenerator:
                     file.write('{0}  strcpy(min_str, str);\n'.format(cpptest_code.max_spaces[i]))
                     file.write('{0}{1}\n'.format(cpptest_code.max_spaces[i], r"}"))
 
-                    file.write('{0}printf(str);\n'.format(cpptest_code.max_spaces[i]))
+                    #file.write('{0}printf(str);\n'.format(cpptest_code.max_spaces[i]))
                     file.write('{0}if(max < (float)(t2 -t1) / {2}) {1}\n'.format(cpptest_code.max_spaces[i], r"{", cpptest_code.sizes_sprintf[i]))
                     file.write('{0}  max = (float)(t2 - t1) / {1};\n'.format(cpptest_code.max_spaces[i], cpptest_code.sizes_sprintf[i]))
                     file.write('{0}  strcpy(max_str, str);\n'.format(cpptest_code.max_spaces[i]))

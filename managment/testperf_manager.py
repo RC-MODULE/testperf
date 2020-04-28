@@ -5,6 +5,8 @@
 #######################################################
 
 import os
+import os.path
+from os import path
 import shutil
 import subprocess
 
@@ -36,25 +38,29 @@ def run_cpptests(testperf_cmd_keys):
         os.chdir(dir_name)
         status = '[OK]'
         info_about_log = 'There is information about this perf test starting in {}.log'.format(dir_name[5:])
-        with open('{}.log'.format(dir_name[5:]), 'w') as output_file:
-            print('-----------------------------------------------------')
-            print('Starting the perf test for {}...'.format(dir_name[5:]))
-            return_code = subprocess.call(['make', 'run'], stdout=output_file, stderr=subprocess.STDOUT)
-        if return_code != 0:
-            status = '[FAIL]'
+        if os.path.exists('{}.md'.format(dir_name[5:])):
+            print ('{}.md'.format(dir_name[5:]) + " file exists - running skipped" )
+            status = '[SKIPPED]' 
         else:
-            with open('{}.log'.format(dir_name[5:]), 'r') as output_file:
-                out_after_make = output_file.read()
-            try:
-                begin = out_after_make.index('/**')
-                end = out_after_make.index(');')
-                out_after_make = out_after_make[begin:end + 2]
-                with open('{}.md'.format(dir_name[5:]), 'w') as md_file:
-                    md_file.write(out_after_make)
-                info_about_log = 'There are perf tables in {}.md'.format(dir_name[5:])
-            except ValueError:
-                status = 'Warning! [OK]'
-                print('Warning! The perf table for {} was not found!'.format(dir_name[5:]))
+            with open('{}.log'.format(dir_name[5:]), 'w') as output_file:
+                print('-----------------------------------------------------')
+                print('Starting the perf test for {}...'.format(dir_name[5:]))
+                return_code = subprocess.call(['make', 'run'], stdout=output_file, stderr=subprocess.STDOUT)
+            if return_code != 0:
+                status = '[FAIL]'
+            else:
+                with open('{}.log'.format(dir_name[5:]), 'r') as output_file:
+                    out_after_make = output_file.read()
+                try:
+                    begin = out_after_make.index("/**")
+                    end = out_after_make.index(');')
+                    out_after_make = out_after_make[begin:end + 2]
+                    with open('{}.md'.format(dir_name[5:]), 'w') as md_file:
+                        md_file.write(out_after_make)
+                    info_about_log = 'There are perf tables in {}.md'.format(dir_name[5:])
+                except ValueError:
+                    status = 'Warning! [OK]'
+                    print('Warning! The perf table for {} was not found!'.format(dir_name[5:]))
         os.chdir('..')
         print('The perf test for {} {}{}'.format(dir_name[5:], ' ' * (47 - len(dir_name[5:]) + 18), status))
         print(info_about_log)
