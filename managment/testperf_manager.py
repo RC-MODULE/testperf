@@ -51,10 +51,17 @@ def run_cpptests(testperf_cmd_keys):
             else:
                 with open('{}.log'.format(dir_name[5:]), 'r') as output_file:
                     out_after_make = output_file.read()
+                    
+                    
+                    
                 try:
                     begin = out_after_make.index("/**")
-                    end = out_after_make.index(');')
+                    end   = out_after_make.index(');',begin)
+                    #print("-----", begin, end)
                     out_after_make = out_after_make[begin:end + 2]
+                    #print("[debug]=================")
+                    #print( out_after_make)
+                    #print("[debug]=================")
                     with open('{}.md'.format(dir_name[5:]), 'w') as md_file:
                         md_file.write(out_after_make)
                     info_about_log = 'There are perf tables in {}.md'.format(dir_name[5:])

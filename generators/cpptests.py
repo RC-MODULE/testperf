@@ -170,19 +170,18 @@ class CpptestsGenerator:
                     file.write(cpptest_code.brackets[i])
                     file.write('\n  printf("{0}The best configuration:{0}{0}");\n'.format(r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
-                    file.write(
-                        '  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].arguments_names) + 1), r"\n"))
+                    file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].arguments_names) + 1), r"\n"))
                     file.write('\n  printf(min_str);\n')
 
                     file.write('\n  printf("{0}The worst configuration:{0}{0}");\n'.format(r"\n"))
                     file.write('  printf("{}   |   {:<13}  |  {}{}");\n'.format(s, 'ticks', 'ticks/elem', r"\n"))
-                    file.write(
-                        '  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].arguments_names) + 1), r"\n"))
+                    file.write('  printf("{}{}");\n'.format('---|---' * (len(perf_scripts[i].arguments_names) + 1), r"\n"))
                     file.write('\n  printf(max_str);\n')
 
                     file.write('}\n')
 
                 file.write('\n')
+                file.write('  printf("  \\n");')
                 file.write('  printf("*/{}");\n'.format(r"\n"))
                 file.write('  printf("{0}{1}{1}");\n'.format(func.prototype, r"\n"))
                 file.write('  return 0;\n}\n')
