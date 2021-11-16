@@ -83,6 +83,7 @@ class CpptestCodeGenerator:
                             cycles_str += '{0}{1}\n'.format(spaces, s.strip())
                 self.__vars_num_in_cpptest += 1
 
+            self.__vars_num_in_cpptest=0  # счетчик номера цикла , восстанавливаем для следующего сценария
             self.__cpptest_code.max_spaces.append(spaces)
 
             size_tag_str = self.create_size_tag_str(spaces, perf_script)
