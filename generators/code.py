@@ -31,7 +31,7 @@ class CpptestCodeGenerator:
     def generate_cpptest_code(self):
         print('Creating the perf test for {}...'.format(self.__function.name))
         ''' В этом цикле перебираеются все сценарии производительности, описанные для группы(group_name) функций'''
-        for perf_script in self.__perf_scripts:
+        for script_num, perf_script in enumerate(self.__perf_scripts):
             argument_for_sprintf = ''
             names_for_sprintf_str = ''
             names_str = ''
@@ -78,7 +78,7 @@ class CpptestCodeGenerator:
                 if perf_script.initialization_func is not None:
                     '''Если тег init используется, то нужно проверить, есть ли в вызываемой функции инициализации параметры,
                        требующие приведения типов. Перед такими параметрами в вызове функции будет стоять знак $'''
-                    if perf_script.initialization_func[1] == self.__vars_num_in_cpptest + 1:
+                    if (perf_script.initialization_func[1] * (script_num + 1)) == self.__vars_num_in_cpptest + 1:
                         for s in init_lst:
                             cycles_str += '{0}{1}\n'.format(spaces, s.strip())
                 self.__vars_num_in_cpptest += 1
