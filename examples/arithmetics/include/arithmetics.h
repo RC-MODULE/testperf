@@ -71,19 +71,15 @@ void nmppsAdd_32f(const nm32f* pSrcVec1, const nm32f* pSrcVec2, nm32f* pDstVec, 
 		 <param name=" nSize "> 2048*2 </param>
 	</testperf>
 	<testperf>
+		
 		<param name=" pSrcVec1 "> im1 </param>
-		
-		
 		<param name=" pSrcVec2 "> im2 </param>
 		<param name=" pSrcVecAdd "> im3 </param>
 		<param name=" pDstVec "> im4 </param>
-		
-		
+		<param name=" nSize "> 8 128 1024 2048 </param>
 		<init>
 		     printf("Dummy init code-scenario 2\n");
 		 </init>
-		
-		<param name=" nSize "> 8 128 1024 2048 </param>
 		
 	</testperf>
 \endxmlonly

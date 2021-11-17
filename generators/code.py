@@ -47,6 +47,7 @@ class CpptestCodeGenerator:
                 for s in init_lst:
                     cycles_str += '  {0}\n'.format(s.strip())
             ''' В этом цикле перебирается все параметры сценария производительности'''
+            argument_local_index=0
             for argument_values, argument_type, argument_name in zip(perf_script.arguments_values,
                                                                      perf_script.arguments_types,
                                                                      perf_script.arguments_names):
@@ -78,12 +79,13 @@ class CpptestCodeGenerator:
                 if perf_script.initialization_func is not None:
                     '''Если тег init используется, то нужно проверить, есть ли в вызываемой функции инициализации параметры,
                        требующие приведения типов. Перед такими параметрами в вызове функции будет стоять знак $'''
-                    if perf_script.initialization_func[1] == self.__vars_num_in_cpptest + 1:
+                    #if perf_script.initialization_func[1] == self.__vars_num_in_cpptest + 1:
+                    if perf_script.initialization_func[1] == argument_local_index + 1:
                         for s in init_lst:
                             cycles_str += '{0}{1}\n'.format(spaces, s.strip())
                 self.__vars_num_in_cpptest += 1
+                argument_local_index +=1 # счетчик индекса переменной внутри сценария
 
-            self.__vars_num_in_cpptest=0  # счетчик номера цикла , восстанавливаем для следующего сценария
             self.__cpptest_code.max_spaces.append(spaces)
 
             size_tag_str = self.create_size_tag_str(spaces, perf_script)
