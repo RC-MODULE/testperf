@@ -2,9 +2,9 @@
 
 
 ## Назначение
-На основе заданного для каждой функции сценария данный генератор позволяет замерить время исполнения функций и создать текстовый файл отчета в формате MarkDown.  
+На основе заданного для каждой функции сценария данный генератор позволяет замерить время исполнения функций и создать текстовый файл отчета.  
 Средство позволяет протестировать производительность функции в разных конфигурациях запуска в зависимости от размера данных и взаимного расположений массивов данных в доступных внутренних и внешних банках памяти. По данным тестирования можно судить о полном времени работы функции, об удельной производительности функции в пересчете на входной элемент данных, а также о наиболее оптимальных конфигурациях с точки зрения расположения входных, выходных и временных массивов по банкам памяти. 
-Средство полезно при разработке, оптимизации и тестировании функций, а также для подготовки данных по производительности для импорта в техническую документацию.  
+Средство полезно при разработке, оптимизации и тестировании функций, а также для подготовки данных по производительности при импорте в техническую документацию.  
 Средство  поддерживает автоматизацию для обработки большого кол-ва функций, генерации тестов и их последующего запуска. 
 Описанные сценария тестирования задаются непосредственно в заголовочных файлах в виде комментариев к функциям в формате Doxygen. 
 Результат замеров выдается в табличном виде в формате MarkDown.
@@ -23,12 +23,6 @@ void nmppsAdd_32f(const nm32f* pSrcVec1, const nm32f* pSrcVec2, nm32f* pDstVec, 
     long long im2[2048];
 #pragma data_section ".data_imu3"
     long long im3[2048];
-#pragma data_section ".data_imu4"
-    long long im4[2048];
-#pragma data_section ".data_imu5"
-    long long im5[2048];
-#pragma data_section ".data_imu6"
-    long long im6[2048];
 
 #pragma data_section ".data_emi"
     long long emi[2048];
@@ -36,23 +30,28 @@ void nmppsAdd_32f(const nm32f* pSrcVec1, const nm32f* pSrcVec2, nm32f* pDstVec, 
 
 Задача 1: требуется замерять время исполнения функции в следующих вариантах памятей при фиксированном размере, чтобы найти лучшую конфигурацию :
 
-nmppsAdd_32f(im1,im1,256);  
-nmppsAdd_32f(im1,im2,256);  
-nmppsAdd_32f(im2,im1,256);  
-nmppsAdd_32f(im1,emi,256);  
-nmppsAdd_32f(emi,emi,256);  
-nmppsAdd_32f(emi,emi1,256);  
+nmppsAdd_32f(im1,im1,im1,256);  
+nmppsAdd_32f(im1,im2,im1,256);  
+nmppsAdd_32f(im2,im1,im1,256);  
+nmppsAdd_32f(im2,em2,im1,256);  
+nmppsAdd_32f(im1,im1,im2,256);  
+nmppsAdd_32f(im1,im2,im2,256);  
+nmppsAdd_32f(im2,im1,im2,256);  
+nmppsAdd_32f(im2,em2,im3,256);  
+nmppsAdd_32f(im1,im1,im3,256);  
+nmppsAdd_32f(im1,im2,im3,256);  
+nmppsAdd_32f(im2,im1,im3,256);  
+nmppsAdd_32f(im2,em2,im3,256);  
 
 Задача 2: требуется определить скорость работы функции в зависимости от размера данных, при фиксированном расположении :
 
-nmppsAdd_32f(im1,im2,8;  
-nmppsAdd_32f(im1,im2,16);  
-nmppsAdd_32f(im2,im1,32);  
-nmppsAdd_32f(im1,emi,256);  
-nmppsAdd_32f(emi,emi,1024);  
+nmppsAdd_32f(im1,im2,im3,8;  
+nmppsAdd_32f(im1,im2,im3,128);  
+nmppsAdd_32f(im1,im2,im3,1024);  
+nmppsAdd_32f(im1,im2,im3,2048);  
 
 
-В случае ручного выполнения  данной задачи (написание тестов, сборка , запуск , сбор информации) процесс будет очень трудоемким, в котором при каждой модификации кода потребуется повторный перезапуск тестов. 
+В случае ручного выполнения данной задачи (написание тестов, сборка , запуск , сбор информации) процесс будет очень трудоемким, в котором при каждой модификации кода потребуется повторный перезапуск тестов. 
 Решение данной  задачи  может быть полностью автоматизировано с помощью генератора тестов test_perf следующим образом:
 
 К функции составляется описание ее параметров в формате Doxygen, в которое в XML-виде добавляются сценарии, по которым необходимо перебирать переменные :
@@ -67,16 +66,18 @@ nmppsAdd_32f(emi,emi,1024);
 \retval pDstVec [out] Результирующий вектор.
 \par
 \xmlonly
-	<testperf>
-		<param name="src"> im1 im2 emi </param> 
-		<param name="dst" type="int*"> im1 im2 emi</param>
-		<param name="nSize"> 256 </param>
-	</testperf>
-	<testperf>
-		<param name="src"> im1 </param> 
-		<param name="dst" type="int*"> im2 </param>
-		<param name="nSize"> 8 16 32 256 1024 </param>
-	</testperf>
+    <testperf>
+         <param name=" pSrcVec1 "> im1 im2 </param>
+         <param name=" pSrcVec2 "> im1 im2 </param>
+         <param name=" pDstVec "> im1 im2 im3 </param>
+         <param name=" nSize "> 2048 </param>
+    </testperf>
+    <testperf>
+         <param name=" pSrcVec1 "> im1 </param>
+         <param name=" pSrcVec2 "> im2 </param>
+         <param name=" pDstVec "> im3 </param>
+         <param name=" nSize "> 8 128 1024 2048 </param>
+    </testperf>
 \endxmlonly
 */
 //! \{
@@ -98,15 +99,6 @@ void nmppsAdd_32f(const nm32f* pSrcVec1, const nm32f* pSrcVec2, nm32f* pDstVec, 
     long long im2[2048];
 #pragma data_section ".data_imu3"
     long long im3[2048];
-#pragma data_section ".data_imu4"
-    long long im4[2048];
-#pragma data_section ".data_imu5"
-    long long im5[2048];
-#pragma data_section ".data_imu6"
-    long long im6[2048];
-
-#pragma data_section ".data_emi"
-    long long emi[2048];
 
 int main()
 {
@@ -119,63 +111,96 @@ int main()
 testperf config -i ..\include  -b make_mc12101_nmpu0
 ```
 
-Генератор test_perf запустит Doxygen и затем создаст для всех найденных (описанных в Doxygen) функций тестовые проекты. В нашем случае для функции nmppsAdd_32f создаст папку \perf_nmppsAdd_32f  .
+Генератор test_perf запустит Doxygen и затем создаст для всех найденных (описанных в Doxygen) функций тестовые проекты. В нашем случае для функции nmppsAdd_32f создаст папку \perf_nmppsAdd_32f с тестом main.cpp  .
 
-После генерации тестов сборка и запуск осуществляется командой 
+
+В результате в main.cpp будет сгенерирован С++ код, перебирающий по сценарию все варианты запуска и производящий для каждого замер времени: 
+
+```
+int main(){
+  ...
+  long long* list0[] = {im1, im2};
+  long long* list1[] = {im1, im2};
+  long long* list2[] = {im1, im2, im3};
+  time_t t1, t2;
+
+  for(int i0 = 0; i0 < 2; i0++) {
+    nm32f * pSrcVec1 = (nm32f *)list0[i0];
+    for(int i1 = 0; i1 < 2; i1++) {
+      nm32f * pSrcVec2 = (nm32f *)list1[i1];
+      for(int i2 = 0; i2 < 3; i2++) {
+        nm32f * pDstVec = (nm32f *)list2[i2];
+        int nSize = (int)(2048);
+        
+        t1 = clock();
+        nmppsAdd_32f(pSrcVec1, pSrcVec2, pDstVec, nSize);
+        t2 = clock();
+        ...
+      }
+    }
+  }
+  ...
+}   
+```
+
+
+После генерации тестов осуществляется сборка и запуск тестов командой 
 ```
 testperf run
 ```
 
-Test_perf запустит все имеющиеся тесты и выдаст таблицу с замерами производительности 
-в виде :
+Test_perf запустит все имеющиеся тесты и выдаст файл nmppsAdd_32f.md с таблицей замеров производительности следующего вида:
 
 
-Perfomance table 0
-
-x   |   X   |   ticks          |  ticks/elem
----|------|------|---
-im1 |         im1 |         1778 |         6.94
-im1 |         im2 |         1722 |         6.72
-im1 |         im3 |         1722 |         6.72
-im1 |         im4 |         1722 |         6.72
-im1 |         im5 |         1722 |         6.72
-im2 |         im1 |         1914 |         7.47
-im2 |         im2 |         1858 |         7.25
-im2 |         im3 |         1858 |         7.25
-im2 |         im4 |         1858 |         7.25
-im2 |         im5 |         1858 |         7.25
-im3 |         im1 |         1910 |         7.46
-im3 |         im2 |         1854 |         7.24
-im3 |         im3 |         1854 |         7.24
-im3 |         im4 |         1854 |         7.24
-im3 |         im5 |         1854 |         7.24
-im4 |         im1 |         1880 |         7.34
-im4 |         im2 |         1824 |         7.12
-im4 |         im3 |         1824 |         7.12
-im4 |         im4 |         1824 |         7.12
-im4 |         im5 |         1824 |         7.12
-im5 |         im1 |         1778 |         6.94
-im5 |         im2 |         1722 |         6.72
-im5 |         im3 |         1722 |         6.72
-im5 |         im4 |         1722 |         6.72
-im5 |         im5 |         1722 |         6.72
+pSrcVec1   |   pSrcVec2   |   pDstVec   |   nSize   |   ticks          |  ticks/elem
+---|------|------|------|------|---
+im1 |         im1 |         im1 |         2048 |         2962 |         1.44
+im1 |         im1 |         im2 |         2048 |         2019 |         0.98
+im1 |         im1 |         im3 |         2048 |         2019 |         0.98
+im1 |         im2 |         im1 |         2048 |         2002 |         0.97
+im1 |         im2 |         im2 |         2048 |         2003 |         0.97
+im1 |         im2 |         im3 |         2048 |         1060 |         0.51
+im2 |         im1 |         im1 |         2048 |         2003 |         0.97
+im2 |         im1 |         im2 |         2048 |         2002 |         0.97
+im2 |         im1 |         im3 |         2048 |         1060 |         0.51
+im2 |         im2 |         im1 |         2048 |         2019 |         0.98
+im2 |         im2 |         im2 |         2048 |         2962 |         1.44
+im2 |         im2 |         im3 |         2048 |         2019 |         0.98
 
 The best configuration:
 
-x   |   X   |   ticks          |  ticks/elem
----|------|------|---
-im1 |         im2 |         1722 |         6.72
+pSrcVec1   |   pSrcVec2   |   pDstVec   |   nSize   |   ticks          |  ticks/elem
+---|------|------|------|------|---
+im1 |         im2 |         im3 |         2048 |         1060 |         0.51
 
 The worst configuration:
 
-x   |   X   |   ticks          |  ticks/elem
----|------|------|---
-im2 |         im1 |         1914 |         7.47
-  
-```
-void nmppsFFT256Fwd_32fcr(const nm32fcr *x, nm32fcr *X, NmppsFFTSpec_32fcr *spec);
+pSrcVec1   |   pSrcVec2   |   pDstVec   |   nSize   |   ticks          |  ticks/elem
+---|------|------|------|------|---
+im1 |         im1 |         im1 |         2048 |         2962 |         1.44
 
-```
+Perfomance table 1
+
+pSrcVec1   |   pSrcVec2   |   pDstVec   |   nSize   |   ticks          |  ticks/elem
+---|------|------|------|------|---
+im1 |         im2 |         im3 |         8 |         98 |         12.24
+im1 |         im2 |         im3 |         128 |         113 |         0.88
+im1 |         im2 |         im3 |         1024 |         548 |         0.53
+im1 |         im2 |         im3 |         2048 |         1060 |         0.51
+
+The best configuration:
+
+pSrcVec1   |   pSrcVec2   |   pDstVec   |   nSize   |   ticks          |  ticks/elem
+---|------|------|------|------|---
+im1 |         im2 |         im3 |         2048 |         1060 |         0.51
+
+The worst configuration:
+
+pSrcVec1   |   pSrcVec2   |   pDstVec   |   nSize   |   ticks          |  ticks/elem
+---|------|------|------|------|---
+im1 |         im2 |         im3 |         8 |         98 |         12.24
+
+
 
 ##  Требования для работы генератора
 
@@ -222,23 +247,42 @@ void nmppsFFT256Fwd_32fcr(const nm32fcr *x, nm32fcr *X, NmppsFFTSpec_32fcr *spec
 *\<init>* и *\</init>* xml-теги, нужны, чтобы вставить дополнительный код в тест.
 Например, для функции:
 
-void fft16(float* src, float*, FftSpec* fftspec);
+void nmppsFFT256Fwd_32fcr(const nm32fcr* x, nm32fcr* X, NmppsFFTSpec_32fcr* spec);
 
-должен быть заранее проинициализирован fftspec с помощью функции инициализации.
+требуется предварительная инициализация структуры spec с помощью функции  nmppsFFT256FwdInitAlloc_32fcr. В этом случае сценарий записывается следующим образом:
 ```
 \xmlonly
-
-        <testperf>
-	        <param name="src"> im1 im2 </param>
-	        <param name="dst"> im1 im2 </param>
-	         <init> 
-	         FftSpec* spec;
-	         initFunc(&spec);	
-	         </init>
-	        <size> width * height	</size>
-        </testperf>
+    <testperf>
+		 <init>
+		     NmppsFFTSpec_32fcr* spec;
+		     nmppsFFT256FwdInitAlloc_32fcr(&amp;spec);
+		 </init>
+         <param name=" x "> im1 im2 im3 im4 im5 </param>
+         <param name=" X "> im1 im2 im3 im4 im5 </param>
+		 <size> 256 </size>
+    </testperf>
 \endxmlonly
 ```
+
+Полученный код будет выглядить так:
+```
+  ...
+  NmppsFFTSpec_32fcr* spec;
+  nmppsFFT256FwdInitAlloc_32fcr(&spec);
+  for(int i0 = 0; i0 < 5; i0++) {
+    nm32fcr * x = (nm32fcr *)list0[i0];
+    for(int i1 = 0; i1 < 5; i1++) {
+      nm32fcr * X = (nm32fcr *)list1[i1];
+      t1 = clock();
+      nmppsFFT256Fwd_32fcr(x, X, spec);
+      t2 = clock();
+      
+    }
+  }
+  ...
+```
+> Блок инициализации будет встроен на том уровне вложенных циклов на котором он задан в сценарии. 
+
 ##### Тег \<size>
 *\<size>* и *\</size>* xml-теги, нужны, чтобы указать количество обрабатываемых функцией данных, если функция не принимает аргумент с количеством данных.
 
@@ -286,7 +330,7 @@ __В папке examples лежит пример подготовленного 
 
 ### Ключ config
 
-При задании этого ключа скрипт будет генерировать xml-файлы описанных функций и создавать тесты производительности на основе этих xml-файлов.
+При задании этого ключа скрипт * будет генерировать xml-файлы описанных функций и создавать тесты производительности на основе этих xml-файлов.
 В папке, из которой был вызван скрипт, появятся папки со сгененрированными тестами. Там же будет создана папка "doxy" c xml-файлами. 
 
 При использовании этого ключа __необходимо__ передать скрипту дополнительные параметры:

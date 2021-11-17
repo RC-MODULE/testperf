@@ -34,7 +34,7 @@ void nmppsFFT256Fwd_32fcr(const nm32fcr* x, nm32fcr* X, NmppsFFTSpec_32fcr* spec
     <testperf>
          <param name=" pSrcVec1 "> im1 im2 </param>
          <param name=" pSrcVec2 "> im1 im2 </param>
-         <param name=" pDstVec "> im2 </param>
+         <param name=" pDstVec "> im1 im2 im3 </param>
          <param name=" nSize "> 2048 </param>
     </testperf>
     <testperf>
