@@ -22,5 +22,6 @@
 
 int main()
 {
+	printf("test ok\n");
   return 0;
 }
